@@ -1,8 +1,16 @@
-	<template>
-	<div id="sockets">
+<template>
+	<div id="YouSync">
 
-		<!-- MacOs Terminal-->
-		<div id="youtubeTerminal">
+		<youtube id="player"
+			ref="youtube" 
+			:video-id="videoId" 
+			@ready="ready" 
+			@playing="playing" 
+			@paused="paused"
+			@ended="ended"
+		></youtube>
+
+		<div id="youtubeLogs">
 			<div id="bar"> 
 				<span id="whatfor">Youtube Logs</span>
 				
@@ -12,9 +20,9 @@
 			</div>
 			<ul class="list-container" v-chat-scroll > 
 				<li 
-						v-for="event in events" :key="event.id" 
+						v-for="(event, i) in events" :key="`${i}-${event.id}`"
 						ref="playingPaused"
-						
+				
 				> 
 					<span class="id">{{event.id}} </span>  <!-- .substring(0, 8)-->
 					<span :class="{'play': event.action === 'started watching.', 
@@ -35,40 +43,17 @@
 			<button id="clear" >Delete</button> <!-- @click="clearLogs"-->
 		</div>
 				
-			<div class="ytb-but"> 
-					<button @click="playVideo">Play</button>
-					<button @click="pauseVideo">Pause</button>
-					<button @click="seekTo">Seek To</button>
-					<button @click="playAll">Play All</button>
-			</div>
-
-
-		<youtube ref="youtube" id="ytb" 
-				:video-id="videoId" 
-				@ready="ready" 
-				@playing="playing" 
-				@paused="paused"
-				@ended="ended"
-		></youtube>
-
-	
-
-		<!-- Spare Mac Terminal
-		<div id="bar"> 
-			<span id="whatfor">Room Logs</span>
-			<div id="red"></div>
-			<div id="yellow"></div>
-			<div id="green"></div>
+		<div class="youtubeControls"> 
+				<button @click="playVideo">Play</button>
+				<button @click="pauseVideo">Pause</button>
+				<button @click="seekTo">Seek To</button>
+				<button @click="playAll">Play All</button>
+				<button @click="pauseAll">Pause All</button>
+				<button @click="seekAll">Seek All</button>
 		</div>
-			<ul class="list-container" style="opacity: 0.6; filter: blur(1px);">
-				<li>
-
-				</li>
-			</ul>
-		-->
 
 	</div>
-	</template>
+</template>
 
 	<script>
 	/* eslint-disable */
@@ -85,7 +70,9 @@
 						videoId: 'q0hyYWKXF0Q',
 						events: [],
 						username: "",
-
+						//seekTo
+						// seconds: "35",
+						// allowSeekAhead : true,
 			}
 		},
 		created(){
@@ -127,6 +114,14 @@
 						this.player.playVideo();
 							this.events.push(data);
 					})
+					this.socket.on('pause_all', data => {  
+						this.player.pauseVideo();
+						this.events.push(data);
+					})
+					this.socket.on('seek_all', data => {  
+						this.player.player.seekTo(35, true);
+						this.events.push(data);
+					})
 				
 				}
 		
@@ -167,24 +162,27 @@
 			},
 			playAll(){
 				this.socket.emit("play_all")
+			},
+			pauseAll(){
+				this.socket.emit("pause_all")
+			},
+			seekAll(){
+					this.socket.emit("seek_all")
 			}
 
-		}, //methods
+
+		},
 
 	}
 	</script>
 
 	<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style>
-		#youtubeTerminal{
-			position: absolute;
-			bottom:0px;
-			right:10px;
+		#youtubeLogs{
+
 		}
-		#ytb{
-			position: absolute;
-			top:0;
-			right:10px;
+		#player{
+			margin: 0 auto;
 		}
 
 		ul.list-container  {
@@ -260,14 +258,10 @@
 			left: 170px;
 			top: 5px;
 		}
-		.ytb-but button{
+		.youtubeControls button{
 			background-color:indianred;
 		}
-		.ytb-but {
-				position: absolute;
-			left: 52.4%;
-			bottom: 0px;
-		}
+		/* .youtubeControls {} */
 		#clear{
 			float: right;
 		}
