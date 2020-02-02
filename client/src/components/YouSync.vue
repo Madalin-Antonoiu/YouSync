@@ -1,12 +1,5 @@
 	<template>
 	<div id="sockets">
-		<canvas ref="game" width="320" height="240" style="border: 1px solid black;">
-		</canvas>
-		<br>
-		<button @click="move('right')">Right</button>
-		<button @click="move('left')">Left</button>
-		<button @click="move('up')">Up</button>
-		<button @click="move('down')">Down</button>
 
 		<!-- MacOs Terminal-->
 		<div id="youtubeTerminal">
@@ -50,12 +43,13 @@
 			</div>
 
 
-		<youtube ref="youtube" id="ytb" :video-id="videoId" 
-						@ready="ready" 
-						@playing="playing" 
-						@paused="paused"
-						@ended="ended"
-						></youtube>
+		<youtube ref="youtube" id="ytb" 
+				:video-id="videoId" 
+				@ready="ready" 
+				@playing="playing" 
+				@paused="paused"
+				@ended="ended"
+		></youtube>
 
 	
 
@@ -73,9 +67,6 @@
 			</ul>
 		-->
 
-
-
-
 	</div>
 	</template>
 
@@ -85,7 +76,7 @@
 
 
 	export default {
-		name: 'BlockGame',
+		name: 'YouSync',
 		data(){
 			return {
 						socket: {},
@@ -107,24 +98,12 @@
 
 					this.socket.emit('little_newbie', username);
 
-
-					this.context = this.$refs.game.getContext("2d");
-
-					this.socket.on("position", data => {
-							this.position = data;
-							this.context.clearRect(0, 0, this.$refs.game.width, this.$refs.game.height); // Clear the canvas
-							this.context.fillRect(this.position.x, this.position.y, 20, 20); // Add a rectangle
-					})
-					// this.socket.on('Created', data => {  
-					// 	this.events.push(data);
-					// })
 					this.socket.on('disconnect', data => {  
 							
 						this.events.push(data);
 
 					})
 					this.socket.on('playing', data => {  
-							// eslint-disable-next-line no-console
 
 							this.events.push(data);
 						//this.player.playVideo(); // Send command to play video on all clients;
@@ -132,30 +111,17 @@
 							
 					})
 					this.socket.on('paused', data => {  
-							// eslint-disable-next-line no-console
-						
-							this.events.push(data); //write to array, which will output to dom with v-for
-							//console.log(this.events);
-							//this.player.pauseVideo(); // Send command to play video on all clients;
+							this.events.push(data); 
 					})
 					this.socket.on('ready', data => {  
-							// eslint-disable-next-line no-console
 							this.events.push(data); //write to array, which will output to dom with v-for
-							//console.log(this.events);
 					})
 					this.socket.on('ended', data => {  
-							// eslint-disable-next-line no-console
 							this.events.push(data); //write to array, which will output to dom with v-for
-							//console.log(this.events);
-
 					})
 					this.socket.on('little_newbie', data => {  
-						// eslint-disable-next-line no-console
 						this.events.push(data); //write to array, which will output to dom with v-for
-						//console.log(this.events);
-
 					})
-					
 					this.socket.on('play_all', data => {  
 					
 						this.player.playVideo();
@@ -173,19 +139,14 @@
 			}
     },
 		methods: {
-			// "Move in this direction and let the server determine how far it moved"
-			move(direction){ 
-					this.socket.emit("move", direction);
-			},
 			ready (event) {
 					this.player = event.target;
 					console.log('Player is ready.')
 					this.socket.emit("ready");
 			},
 			ended (){
-				// On video end
 				console.log('Yay. You`ve stayed until the end . Video ended!')
-				this.socket.emit("ended");//1. Emit from client to server, from server back, and client show again	
+				this.socket.emit("ended");
 			},
 			playing () {
 				console.log('\o/ we are watching!!!')
@@ -208,125 +169,124 @@
 				this.socket.emit("play_all")
 			}
 
-
 		}, //methods
 
 	}
 	</script>
 
 	<!-- Add "scoped" attribute to limit CSS to this component only -->
-	<style>
-	#youtubeTerminal{
-		position: absolute;
-		bottom:0px;
-		right:10px;
-	}
-	#ytb{
-		position: absolute;
-		top:0;
-		right:10px;
-	}
-
-	ul.list-container  {
-  	list-style-type: none;
-		font-size: 14px;
-		height: 150px;
-		width:400px;
-		margin:0;
-		overflow-y: auto;
-		background-color: #33485E;
-		color:#ffffff;
-		padding: 12px;
-		border-radius: 0px 0px 8px 8px;
-	}
-	.timestamp{
-		opacity: 0.75;
-		font-size:12px;
-		color: #ffffff;
-		font-weight: 400;
-		padding-left:3px;
-	float: right;
-	}
-
-	/*MacOs Terminal*/ 
-
-#bar {
-    text-align: center;
-    width: 424px;
-    height: 25px;
-    background-color: #DAD9D9;
-    margin: 0 ;
-    font-family: monospace;
-    padding: auto;
-    float: none;
-    border-radius: 5px;
-		position: relative;
-}
-#red {
-    background-color: #E94B35;
-    border-radius: 100%;
-    width: 15px;
-    height: 15px;
-    margin: 0 auto;
-    left: -200px;
-    bottom: -20%;
-    position:relative;
-}
-#yellow {
-    background-color: #f0f000;
-    border-radius: 100%;
-    width: 15px;
-    height: 15px;
-    margin: 0 auto;
-    left: -180px;
-    bottom: 40%;
-    position:relative;
-    display: block;
-}
-#green {
-    background-color: #1AAF5C;
-    border-radius: 100%;
-    width: 15px;
-    height: 15px;
-    margin: 0 auto;
-    left: -160px;
-    bottom: 99%;
-    position:relative;
-    display: block;
-}
-	#whatfor{
-		position: absolute;
-    height: 15px;
-		left: 170px;
-		top: 5px;
-	}
-	.ytb-but button{
-		background-color:indianred;
-	}
-	.ytb-but {
+<style>
+		#youtubeTerminal{
 			position: absolute;
-		left: 52.4%;
-		bottom: 0px;
-	}
-	#clear{
+			bottom:0px;
+			right:10px;
+		}
+		#ytb{
+			position: absolute;
+			top:0;
+			right:10px;
+		}
+
+		ul.list-container  {
+			list-style-type: none;
+			font-size: 14px;
+			height: 150px;
+			width:400px;
+			margin:0;
+			overflow-y: auto;
+			background-color: #33485E;
+			color:#ffffff;
+			padding: 12px;
+			border-radius: 0px 0px 8px 8px;
+		}
+		.timestamp{
+			opacity: 0.75;
+			font-size:12px;
+			color: #ffffff;
+			font-weight: 400;
+			padding-left:3px;
 		float: right;
-	}
+		}
 
-	.play{
-		color: #00ff00;
-	}
-	.pause{
-			color: #f1f227;
-	}
-	.id {
-		color: #be90d4;
-	}
-	.leftRoom{
-		text-decoration: line-through;
+		/*MacOs Terminal*/ 
 
+	#bar {
+			text-align: center;
+			width: 424px;
+			height: 25px;
+			background-color: #DAD9D9;
+			margin: 0 ;
+			font-family: monospace;
+			padding: auto;
+			float: none;
+			border-radius: 5px;
+			position: relative;
 	}
-	.endView{
-		color: #ff6347
+	#red {
+			background-color: #E94B35;
+			border-radius: 100%;
+			width: 15px;
+			height: 15px;
+			margin: 0 auto;
+			left: -200px;
+			bottom: -20%;
+			position:relative;
 	}
+	#yellow {
+			background-color: #f0f000;
+			border-radius: 100%;
+			width: 15px;
+			height: 15px;
+			margin: 0 auto;
+			left: -180px;
+			bottom: 40%;
+			position:relative;
+			display: block;
+	}
+	#green {
+			background-color: #1AAF5C;
+			border-radius: 100%;
+			width: 15px;
+			height: 15px;
+			margin: 0 auto;
+			left: -160px;
+			bottom: 99%;
+			position:relative;
+			display: block;
+	}
+		#whatfor{
+			position: absolute;
+			height: 15px;
+			left: 170px;
+			top: 5px;
+		}
+		.ytb-but button{
+			background-color:indianred;
+		}
+		.ytb-but {
+				position: absolute;
+			left: 52.4%;
+			bottom: 0px;
+		}
+		#clear{
+			float: right;
+		}
+
+		.play{
+			color: #00ff00;
+		}
+		.pause{
+				color: #f1f227;
+		}
+		.id {
+			color: #be90d4;
+		}
+		.leftRoom{
+			text-decoration: line-through;
+
+		}
+		.endView{
+			color: #ff6347
+		}
 
 	</style>

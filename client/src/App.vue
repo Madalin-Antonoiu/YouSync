@@ -1,16 +1,16 @@
 <template>
   <div id="app">
-    <BlockGame />
+    <YouSync />
   </div>
 </template>
 
 <script>
-import BlockGame from './components/BlockGame.vue'
+import YouSync from './components/YouSync.vue'
 
 export default {
   name: 'app',
   components: {
-    BlockGame
+    YouSync
   }
 }
 </script>
