@@ -4,10 +4,11 @@
 		<youtube id="player"
 			ref="youtube" 
 			:video-id="videoId" 
+			:player-vars="playerVars"
 			@ready="ready" 
 			@playing="playing" 
 			@paused="paused"
-			@ended="ended"
+			@ended="ended"	
 		></youtube>
 
 		<div id="youtubeLogs">
@@ -44,12 +45,18 @@
 		</div>
 				
 		<div class="youtubeControls"> 
-				<button @click="playVideo">Play</button>
+				<!-- <button @click="playVideo">Play</button> Hidden from view now
 				<button @click="pauseVideo">Pause</button>
-				<button @click="seekTo">Seek To</button>
+				<button @click="seekTo">Seek To</button> -->
 				<button @click="playAll">Play All</button>
 				<button @click="pauseAll">Pause All</button>
-				<button @click="seekAll">Seek All</button>
+				<button @click="backToStart">FromStart All</button>
+				<button @click="forwardFive">GoTo S5 All</button>
+				<button @click="randomKPop">RandomKPop</button>
+				<button @click="changeSong">Change Video</button>
+				<input v-model="youtubeId" placeholder="Enter Youtube ID">
+
+				<!-- <p>Message is: {{ youtubeId }}</p> -->
 		</div>
 
 	</div>
@@ -65,11 +72,16 @@
 		data(){
 			return {
 						socket: {},
+						playerVars: {
+							rel: 0
+      					},
 						context: 0,
 						position :{x: 0, y: 0},
 						videoId: 'q0hyYWKXF0Q',
 						events: [],
 						username: "",
+						youtubeId: "2S24-y0Ij3Y",
+						randomkpop:[]
 						//seekTo
 						// seconds: "35",
 						// allowSeekAhead : true,
@@ -79,12 +91,14 @@
 			this.socket = io("http://localhost:3000/"); // http://192.168.100.3:3000/" Client socket to > server adress / Gitpod change
 		},
 		mounted(){
-				var username = prompt('What\'s your username?');
+				//Shutting this off for it is annoying atm
+				//var username = prompt('What\'s your username?');
 
-				if (username){ 
+				//if (username){ 
 
-					this.socket.emit('little_newbie', username);
+					// this.socket.emit('little_newbie', username);
 
+					// Sectia primire de catre Client inapoi de la server
 					this.socket.on('disconnect', data => {  
 							
 						this.events.push(data);
@@ -106,9 +120,9 @@
 					this.socket.on('ended', data => {  
 							this.events.push(data); //write to array, which will output to dom with v-for
 					})
-					this.socket.on('little_newbie', data => {  
-						this.events.push(data); //write to array, which will output to dom with v-for
-					})
+					// this.socket.on('little_newbie', data => {  
+					// 	this.events.push(data); //write to array, which will output to dom with v-for
+					// })
 					this.socket.on('play_all', data => {  
 					
 						this.player.playVideo();
@@ -118,12 +132,44 @@
 						this.player.pauseVideo();
 						this.events.push(data);
 					})
-					this.socket.on('seek_all', data => {  
-						this.player.player.seekTo(35, true);
+					this.socket.on('backToStart_all', data => {  
+
+						//Works now - Seek forward
+						//this.player.seekTo(5, true);
 						this.events.push(data);
+
+							this.player.seekTo(0, true);
+							
+					})
+					this.socket.on('backToStart_all', data => {  
+
+						//Works now - Seek forward
+						//this.player.seekTo(5, true);
+						this.events.push(data);
+
+							this.player.seekTo(0, true);
+							
+					})
+					this.socket.on('forwardFive_all', data => {  
+
+						//Works now - Seek forward
+						//this.player.seekTo(5, true);
+						this.events.push(data);
+
+							this.player.seekTo(5, true);
+							
+					})
+					this.socket.on('changeSong_all', data => {  
+
+						//console.log( 'This comes from mounted' + this.youtubeId)	
+						//So this socket gets but not all.. the pbolem is in Socketio emit!
+						this.player.loadVideoById(data.id, 0, "large")
+						this.events.push(data);
+						//console.log(data.youtubeId); This check is OK!
+							
 					})
 				
-				}
+				//}
 		
 				//setInterval(this.getNow, 5000);//refs are available only after mounted
 
@@ -166,10 +212,29 @@
 			pauseAll(){
 				this.socket.emit("pause_all")
 			},
-			seekAll(){
-					this.socket.emit("seek_all")
-			}
+			backToStart(){
+					this.socket.emit("backToStart_all")
+			},
+			forwardFive(){
+					this.socket.emit("forwardFive_all")
+			},
+			changeSong(){
+				// console.log(this.youtubeId); OK check
+				
+				// TO DO - Determine if playlist and play it all!
 
+				//Determine if typed a full link or just ID
+				if  (this.youtubeId.includes("www.youtube.com/watch")){
+					this.socket.emit("changeSong_all", this.$youtube.getIdFromUrl(this.youtubeId))
+				} else {
+					this.socket.emit("changeSong_all", this.youtubeId)
+				}
+
+
+					
+					//console.log(this.youtubeId)	
+					//So it can access data () with this
+			},
 
 		},
 

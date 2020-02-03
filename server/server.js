@@ -13,25 +13,25 @@ var position = {
     // end of it
 
 Socketio.on("connection", socket => {
-
+    
     socket.emit("position", position) // As in pos line5, emits to one client
 
     // If connected & playing - Server console logs - socket.on
     socket.on("disconnect", data => {
-        console.log(socket.username + " " + socket.id + ' disconnected.')
+        console.log( socket.id + ' disconnected.')
 
         Socketio.emit('disconnect', {
-            id: "💥" + socket.username + " " + socket.id,
+            id: "💥"  + socket.id,
             action: "left room.",
             timestamp: socket.handshake.time
         })
 
     })
     socket.on("playing", data => {
-        console.log(socket.username + " " + socket.id + ' started watching.') // log here socket.handshake.time 
+        console.log(socket.id + ' started watching.') // log here socket.handshake.time 
             //.slice to make it shorter in client
         Socketio.emit('playing', {
-                id: socket.username + " " + socket.id,
+                id: socket.id,
                 action: "started watching.",
                 timestamp: socket.handshake.time
             }) // send to all clients
@@ -40,40 +40,40 @@ Socketio.on("connection", socket => {
         console.log(socket.id + 'paused.') // log here
 
         Socketio.emit('paused', {
-                id: socket.username + " " + socket.id,
+                id: socket.id, //socket.username + " " 
                 action: "paused.",
                 timestamp: socket.handshake.time
             }) // send to all clients
     })
     socket.on("ready", data => {
-        console.log(socket.username + " " + socket.id + "'s player is ready.") // log here
+        console.log(socket.id + "'s player is ready.") // log here
 
         Socketio.emit("ready", {
-                id: socket.username + " " + socket.id,
+                id:  socket.id,
                 action: "'s player is ready.",
                 timestamp: socket.handshake.time
             }) // send to all clients
     })
     socket.on("ended", data => {
-        console.log(socket.username + " " + socket.id + 'ended watching.') // log here socket.handshake.time 
+        console.log(socket.id + 'ended watching.') // log here socket.handshake.time 
             //.slice to make it shorter in client
         Socketio.emit('ended', {
-                id: socket.username + " " + socket.id,
+                id:  socket.id,
                 action: "ended watching.",
                 timestamp: socket.handshake.time
             }) // send to all clients
     })
-    socket.on('little_newbie', username => {
-        socket.username = username;
-        console.log(socket.username + " " + socket.id + ' is speaking to me! ');
+    // socket.on('little_newbie', username => {
+    //     socket.username = username;
+    //     console.log(socket.username + " " + socket.id + ' is speaking to me! ');
 
-        Socketio.emit('little_newbie', {
-                id: socket.username + " " + socket.id,
-                action: "has joined the room <3.",
-                timestamp: socket.handshake.time
-            }) // send to all clients
+    //     Socketio.emit('little_newbie', {
+    //             id: socket.username + " " + socket.id,
+    //             action: "has joined the room <3.",
+    //             timestamp: socket.handshake.time
+    //         }) // send to all clients
 
-    });
+    // });
     socket.on('play_all', data => {
 
         console.log('I command all players play now!');
@@ -96,12 +96,31 @@ Socketio.on("connection", socket => {
         })
 
     });
-    socket.on('seek_all', data => {
+    socket.on('backToStart_all', data => {
 
-        console.log('I command all players to seek now!');
+        console.log('Let`s Go Back To Start Guys!');
 
-        Socketio.emit('seek_all', {
-            action: "Seek with me guys!" +", says "+ socket.username,
+        Socketio.emit('backToStart_all', {
+            action: "Back to start y'all!",
+        })
+
+    });
+    socket.on('forwardFive_all', data => {
+
+        console.log("Forward by 5 y'all!");
+
+        Socketio.emit('forwardFive_all', {
+            action: "Forward by 5 y'all!",
+        })
+
+    });
+    socket.on('changeSong_all', youtubeId  => {
+        socket.youtubeId = youtubeId;
+        //console.log(youtubeId) Check is ok!
+
+        Socketio.emit('changeSong_all', {
+            id: socket.youtubeId,
+            action: "Change song y'all clients! - CustomID",
         })
 
     });
