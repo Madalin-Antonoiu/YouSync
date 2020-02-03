@@ -27,14 +27,22 @@
 				> 
 					<span class="id">{{event.id}} </span>  <!-- .substring(0, 8)-->
 					<span :class="{'play': event.action === 'is watching.', 
-												'pause': event.action === 'is paused.', 
-												'': event.action == 'joined room.', 
-												'leftRoom': event.action == 'left room.',
-												'endView' : event.action == 'ended watching.',
+                            'pause': event.action === 'is paused.', 
+                            '': event.action == 'joined room.', 
+                            'leftRoom': event.action == 'left room.',
+                            'endView' : event.action == 'ended watching.',
 												
 												}"
 					> {{event.action}}
 					</span>  
+                
+                    <a style="color: lightblue" 
+                    class="videoid" 
+                    v-if="event.videoid" 
+                    :href="'https://www.youtube.com/watch?v='+event.videoid"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    >link</a>
 
 			
 					<!-- <span ref="fromNow" >{{ event.timestamp  }}</span>   Future reference, or local component-->
@@ -161,7 +169,7 @@
 
         //console.log( 'This comes from mounted' + this.youtubeId)	
         //So this socket gets but not all.. the pbolem is in Socketio emit!
-        this.player.loadVideoById(data.id, 0, "large")
+        this.player.loadVideoById(data.videoid, 0, "large")
         this.events.push(data);
         //console.log(data.youtubeId); This check is OK!
             

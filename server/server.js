@@ -58,7 +58,7 @@ Socketio.on("connection", socket => {
 
         Socketio.emit('play_all', {
                 id: socket.id.substring(0,6),
-                action: "Get Playing guys!",
+                action: "is playing a video for all.",
 
             }) // send to all clients
 
@@ -98,8 +98,9 @@ Socketio.on("connection", socket => {
         //console.log(youtubeId) Check is ok!
 
         Socketio.emit('changeSong_all', {
-            id: socket.youtubeId,
-            action: "Changed song" + socket.id.substring(0,6),
+            id: socket.id.substring(0,6),
+            action: "changed the video to this",
+            videoid: socket.youtubeId
         })
 
     });
