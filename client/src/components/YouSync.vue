@@ -26,8 +26,8 @@
 				
 				> 
 					<span class="id">{{event.id}} </span>  <!-- .substring(0, 8)-->
-					<span :class="{'play': event.action === 'started watching.', 
-												'pause': event.action === 'paused.', 
+					<span :class="{'play': event.action === 'is watching.', 
+												'pause': event.action === 'is paused.', 
 												'': event.action == 'joined room.', 
 												'leftRoom': event.action == 'left room.',
 												'endView' : event.action == 'ended watching.',
@@ -41,7 +41,7 @@
 					<dynamic-from-now class="timestamp" :interval="60000"></dynamic-from-now>
 				</li>
 			</ul>
-			<button id="clear" >Delete</button> <!-- @click="clearLogs"-->
+			<!--<button id="clear" >Delete</button> <! @click="clearLogs"-->
 		</div>
 				
 		<div class="youtubeControls"> 
@@ -52,17 +52,18 @@
 				<button @click="pauseAll">Pause All</button>
 				<button @click="backToStart">FromStart All</button>
 				<button @click="forwardFive">GoTo S5 All</button>
-				<button @click="randomKPop">RandomKPop</button>
+				<!--<button @click="randomKPop">RandomKPop</button>-->
 				<button @click="changeSong">Change Video</button>
 				<input v-model="youtubeId" placeholder="Enter Youtube ID">
-
+                <button @click="muteAll">Mute All</button>
+                <button @click="unmuteAll">Unmute All</button>
 				<!-- <p>Message is: {{ youtubeId }}</p> -->
 		</div>
 
 	</div>
 </template>
 
-	<script>
+<script>
 	/* eslint-disable */
 	import io from 'socket.io-client'; 
 
@@ -88,7 +89,7 @@
 			}
 		},
 		created(){
-			this.socket = io("http://localhost:3000/"); // http://192.168.100.3:3000/" Client socket to > server adress / Gitpod change
+			this.socket = io("https://3000-de8aff82-e463-44b6-8808-3e3811273d8f.ws-eu01.gitpod.io/"); // http://192.168.100.3:3000/" "http://localhost:3000/" Client socket to > server adress / Gitpod change 
 		},
 		mounted(){
 				//Shutting this off for it is annoying atm
@@ -98,87 +99,99 @@
 
 					// this.socket.emit('little_newbie', username);
 
-					// Sectia primire de catre Client inapoi de la server
-					this.socket.on('disconnect', data => {  
-							
-						this.events.push(data);
+    // Sectia primire de catre Client inapoi de la server
+    this.socket.on('disconnect', data => {  
+            
+        this.events.push(data);
 
-					})
-					this.socket.on('playing', data => {  
+    })
+    this.socket.on('playing', data => {  
 
-							this.events.push(data);
-						//this.player.playVideo(); // Send command to play video on all clients;
-						
-							
-					})
-					this.socket.on('paused', data => {  
-							this.events.push(data); 
-					})
-					this.socket.on('ready', data => {  
-							this.events.push(data); //write to array, which will output to dom with v-for
-					})
-					this.socket.on('ended', data => {  
-							this.events.push(data); //write to array, which will output to dom with v-for
-					})
-					// this.socket.on('little_newbie', data => {  
-					// 	this.events.push(data); //write to array, which will output to dom with v-for
-					// })
-					this.socket.on('play_all', data => {  
-					
-						this.player.playVideo();
-							this.events.push(data);
-					})
-					this.socket.on('pause_all', data => {  
-						this.player.pauseVideo();
-						this.events.push(data);
-					})
-					this.socket.on('backToStart_all', data => {  
+            this.events.push(data);
+        //this.player.playVideo(); // Send command to play video on all clients;
+        
+            
+    })
+    this.socket.on('paused', data => {  
+            this.events.push(data); 
+    })
+    this.socket.on('ready', data => {  
+            this.events.push(data); //write to array, which will output to dom with v-for
+    })
+    this.socket.on('ended', data => {  
+            this.events.push(data); //write to array, which will output to dom with v-for
+    })
+    this.socket.on('play_all', data => {  
+    
+        this.player.playVideo();
+            this.events.push(data);
+    })
+    this.socket.on('pause_all', data => {  
+        this.player.pauseVideo();
+        this.events.push(data);
+    })
+    this.socket.on('backToStart_all', data => {  
 
-						//Works now - Seek forward
-						//this.player.seekTo(5, true);
-						this.events.push(data);
+        //Works now - Seek forward
+        //this.player.seekTo(5, true);
+        this.events.push(data);
 
-							this.player.seekTo(0, true);
-							
-					})
-					this.socket.on('backToStart_all', data => {  
+            this.player.seekTo(0, true);
+            
+    })
+    this.socket.on('backToStart_all', data => {  
 
-						//Works now - Seek forward
-						//this.player.seekTo(5, true);
-						this.events.push(data);
+        //Works now - Seek forward
+        //this.player.seekTo(5, true);
+        this.events.push(data);
 
-							this.player.seekTo(0, true);
-							
-					})
-					this.socket.on('forwardFive_all', data => {  
+            this.player.seekTo(0, true);
+            
+    })
+    this.socket.on('forwardFive_all', data => {  
 
-						//Works now - Seek forward
-						//this.player.seekTo(5, true);
-						this.events.push(data);
+        //Works now - Seek forward
+        //this.player.seekTo(5, true);
+        this.events.push(data);
 
-							this.player.seekTo(5, true);
-							
-					})
-					this.socket.on('changeSong_all', data => {  
+            this.player.seekTo(5, true);
+            
+    })
+    this.socket.on('changeSong_all', data => {  
 
-						//console.log( 'This comes from mounted' + this.youtubeId)	
-						//So this socket gets but not all.. the pbolem is in Socketio emit!
-						this.player.loadVideoById(data.id, 0, "large")
-						this.events.push(data);
-						//console.log(data.youtubeId); This check is OK!
-							
-					})
-				
-				//}
-		
-				//setInterval(this.getNow, 5000);//refs are available only after mounted
+        //console.log( 'This comes from mounted' + this.youtubeId)	
+        //So this socket gets but not all.. the pbolem is in Socketio emit!
+        this.player.loadVideoById(data.id, 0, "large")
+        this.events.push(data);
+        //console.log(data.youtubeId); This check is OK!
+            
+    })
+    this.socket.on('mute_all', data => {  
+    
+        this.player.mute()
+        this.events.push(data);
+    })
+    this.socket.on('unmute_all', data => { 
+        this.player.unMute()
+        this.events.push(data);
+    })
 
-		},
-  	computed: {
+
+
+    // this.socket.on('little_newbie', data => {  
+    // 	this.events.push(data); //write to array, which will output to dom with v-for
+    // })
+
+    //}
+
+    //setInterval(this.getNow, 5000);//refs are available only after mounted
+
+},
+  	    computed: {
     	player() {
 				return this.$refs.youtube.player
 			}
-    },
+        },
 		methods: {
 			ready (event) {
 					this.player = event.target;
@@ -235,9 +248,14 @@
 					//console.log(this.youtubeId)	
 					//So it can access data () with this
 			},
+            muteAll(){
+				this.socket.emit("mute_all")
+			},
+            unmuteAll(){
+				this.socket.emit("unmute_all")
+			},
 
 		},
-
 	}
 	</script>
 

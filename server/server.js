@@ -1,24 +1,13 @@
 const Express = require("express")(); //constructor (inst. of var app =express())
 const Http = require("http").Server(Express);
 const Socketio = require("socket.io")(Http);
-// const nsp = Socketio.of('/room1');
-//var moment = require('moment'); // It should run on client to update the times ;) 
-// io.socket/ io is default /, or Socketio in our case with broadcast all /
 
-// Only for the Canvas game
-var position = {
-        x: 200,
-        y: 200
-    }
-    // end of it
 
 Socketio.on("connection", socket => {
-    
-    socket.emit("position", position) // As in pos line5, emits to one client
 
     // If connected & playing - Server console logs - socket.on
     socket.on("disconnect", data => {
-        console.log( socket.id + ' disconnected.')
+        console.log(socket.id.substring(0,6) + ' disconnected.')
 
         Socketio.emit('disconnect', {
             id: "💥"  + socket.id,
@@ -28,29 +17,29 @@ Socketio.on("connection", socket => {
 
     })
     socket.on("playing", data => {
-        console.log(socket.id + ' started watching.') // log here socket.handshake.time 
+        console.log(socket.id.substring(0,6) + ' is watching.') // log here socket.handshake.time 
             //.slice to make it shorter in client
         Socketio.emit('playing', {
-                id: socket.id,
-                action: "started watching.",
+                id: socket.id.substring(0,6),
+                action: "is watching.",
                 timestamp: socket.handshake.time
             }) // send to all clients
     })
     socket.on("paused", data => {
-        console.log(socket.id + 'paused.') // log here
+        console.log(socket.id.substring(0,6) + 'is paused.') // log here
 
         Socketio.emit('paused', {
-                id: socket.id, //socket.username + " " 
-                action: "paused.",
+                id: socket.id.substring(0,6), //socket.username + " " 
+                action: "is paused.",
                 timestamp: socket.handshake.time
             }) // send to all clients
     })
     socket.on("ready", data => {
-        console.log(socket.id + "'s player is ready.") // log here
+        console.log( socket.id.substring(0,6) + "'s player is ready.") // log here
 
         Socketio.emit("ready", {
-                id:  socket.id,
-                action: "'s player is ready.",
+                id: socket.id.substring(0,6),
+                action: "joined and his player is ready.",
                 timestamp: socket.handshake.time
             }) // send to all clients
     })
@@ -58,28 +47,17 @@ Socketio.on("connection", socket => {
         console.log(socket.id + 'ended watching.') // log here socket.handshake.time 
             //.slice to make it shorter in client
         Socketio.emit('ended', {
-                id:  socket.id,
+                id: socket.id.substring(0,6),
                 action: "ended watching.",
                 timestamp: socket.handshake.time
             }) // send to all clients
     })
-    // socket.on('little_newbie', username => {
-    //     socket.username = username;
-    //     console.log(socket.username + " " + socket.id + ' is speaking to me! ');
-
-    //     Socketio.emit('little_newbie', {
-    //             id: socket.username + " " + socket.id,
-    //             action: "has joined the room <3.",
-    //             timestamp: socket.handshake.time
-    //         }) // send to all clients
-
-    // });
     socket.on('play_all', data => {
 
         console.log('I command all players play now!');
 
         Socketio.emit('play_all', {
-
+                id: socket.id.substring(0,6),
                 action: "Get Playing guys!",
 
             }) // send to all clients
@@ -90,8 +68,8 @@ Socketio.on("connection", socket => {
         console.log('I command all players to pause now!');
 
         Socketio.emit('pause_all', {
-
-            action: "Get A Short Break guys!",
+             id: socket.id.substring(0,6),
+            action: "has paused the video for everyone.",
 
         })
 
@@ -101,6 +79,7 @@ Socketio.on("connection", socket => {
         console.log('Let`s Go Back To Start Guys!');
 
         Socketio.emit('backToStart_all', {
+           id: socket.id.substring(0,6),
             action: "Back to start y'all!",
         })
 
@@ -120,41 +99,43 @@ Socketio.on("connection", socket => {
 
         Socketio.emit('changeSong_all', {
             id: socket.youtubeId,
-            action: "Change song y'all clients! - CustomID",
+            action: "Changed song" + socket.id.substring(0,6),
         })
 
     });
-	
+    socket.on('mute_all', data => {
 
-    socket.on('move', data => {
-        switch (data) {
-            case "left":
-                position.x -= 5 //position = position -5 
-                    //Socketio emits to all clients, whereas socket.emit will emit to just that 1 socket
-                Socketio.emit("position", position) //we want to update the position on ALL clients
-                break;
+        Socketio.emit('mute_all', {
+                id: socket.id.substring(0,6),
+                action: "Muted guys!",
 
-            case "right":
-                position.x += 5 //position = position -5 
-                    //Socketio emits to all clients, whereas socket.emit will emit to just that 1 socket
-                Socketio.emit("position", position) //we want to update the position on ALL clients
-                break;
+            }) // send to all clients
 
-            case "up":
-                position.y -= 5 //position = position -5 
-                    //Socketio emits to all clients, whereas socket.emit will emit to just that 1 socket
-                Socketio.emit("position", position) //we want to update the position on ALL clients
-                break;
+    });
+    socket.on('unmute_all', data => {
 
-            case "down":
-                position.y += 5 //position = position -5 
-                    //Socketio emits to all clients, whereas socket.emit will emit to just that 1 socket
-                Socketio.emit("position", position) //we want to update the position on ALL clients
-                break;
-        }
-    })
+        Socketio.emit('unmute_all', {
+                id: socket.id.substring(0,6),
+                action: "Unmuted guys!",
+
+            }) // send to all clients
+
+    });
 
 
+
+
+        // socket.on('little_newbie', username => {
+    //     socket.username = username;
+    //     console.log(socket.username + " " + socket.id + ' is speaking to me! ');
+
+    //     Socketio.emit('little_newbie', {
+    //             id: socket.username + " " + socket.id,
+    //             action: "has joined the room <3.",
+    //             timestamp: socket.handshake.time
+    //         }) // send to all clients
+
+    // });
 });
 
 
