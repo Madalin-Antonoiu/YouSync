@@ -62,10 +62,10 @@
 				<button @click="forwardFive">GoTo S5 All</button>
 				<!--<button @click="randomKPop">RandomKPop</button>-->
 				<button @click="changeSong">Change Video</button>
-				<input v-model="youtubeId" placeholder="Enter Youtube ID">
+				<input ref="youtubeIdInput" v-model="youtubeId" placeholder="Enter Youtube ID">
                 <button @click="muteAll">Mute All</button>
                 <button @click="unmuteAll">Unmute All</button>
-				<!-- <p>Message is: {{ youtubeId }}</p> -->
+				<!-- <p>Message is: {{ youtubeId }}</p>   -->
 		</div>
 
 	</div>
@@ -82,14 +82,15 @@
 			return {
 						socket: {},
 						playerVars: {
-							rel: 0
+							'rel': 0,
+                            'controls': 0
       					},
 						context: 0,
 						position :{x: 0, y: 0},
 						videoId: 'q0hyYWKXF0Q',
 						events: [],
 						username: "",
-						youtubeId: "2S24-y0Ij3Y",
+						youtubeId: "", //2S24-y0Ij3Y
 						randomkpop:[]
 						//seekTo
 						// seconds: "35",
@@ -172,7 +173,7 @@
         this.player.loadVideoById(data.videoid, 0, "large")
         this.events.push(data);
         //console.log(data.youtubeId); This check is OK!
-            
+   
     })
     this.socket.on('mute_all', data => {  
     
@@ -247,11 +248,13 @@
 				//Determine if typed a full link or just ID
 				if  (this.youtubeId.includes("www.youtube.com/watch")){
 					this.socket.emit("changeSong_all", this.$youtube.getIdFromUrl(this.youtubeId))
+                    //this.$refs.youtubeIdInput.value="";
 				} else {
 					this.socket.emit("changeSong_all", this.youtubeId)
+                    //this.$refs.youtubeIdInput.value="";
 				}
 
-
+                
 					
 					//console.log(this.youtubeId)	
 					//So it can access data () with this
