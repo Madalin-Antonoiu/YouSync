@@ -93,17 +93,6 @@ Socketio.on("connection", socket => {
         })
 
     });
-    socket.on('changeSong_all', youtubeId  => {
-        socket.youtubeId = youtubeId;
-        //console.log(youtubeId) Check is ok!
-
-        Socketio.emit('changeSong_all', {
-            id: socket.id.substring(0,6),
-            action: "changed the video to this",
-            videoid: socket.youtubeId
-        })
-
-    });
     socket.on('mute_all', data => {
 
         Socketio.emit('mute_all', {
@@ -122,8 +111,29 @@ Socketio.on("connection", socket => {
             }) // send to all clients
 
     });
+    socket.on('changeSong_all', youtubeId  => {
+        socket.youtubeId = youtubeId;
+        //console.log(youtubeId) Check is ok!
 
+        Socketio.emit('changeSong_all', {
+            id: socket.id.substring(0,6),
+            action: "changed the video to this",
+            videoid: socket.youtubeId
+        })
 
+    });
+    
+    socket.on('playerCurrentTime', value => {
+        socket.currentTime = value;
+        console.log(socket.currentTime  + " " + socket.id )
+
+        Socketio.emit('playerCurrentTime', {
+                id: socket.id.substring(0,6),
+                action: "I am on",
+                currentTime: socket.currentTime
+            }) // send to all clients
+
+    });
 
 
         // socket.on('little_newbie', username => {
