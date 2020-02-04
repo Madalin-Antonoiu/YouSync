@@ -46,7 +46,8 @@
 
                     <span v-if="event.currentTime">{{event.currentTime}} </span>
                     <!--<span v-if="event.playCurrentTime">{{event.playCurrentTime}} </span> -->
-			
+		
+					<span v-if="event.senderCurrentTime">{{event.senderCurrentTime}} </span>
 					<!-- <span ref="fromNow" >{{ event.timestamp  }}</span>   Future reference, or local component-->
 					<dynamic-from-now class="timestamp" :interval="60000"></dynamic-from-now>
 				</li>
@@ -61,7 +62,7 @@
 				<button @click="playAll">Play All</button>
 				<button @click="pauseAll">Pause All</button>
 				<button @click="backToStart">FromStart All</button>
-				<button @click="getToThisMoment">GoTo This Moment</button>
+				<button @click="seekOnOthers">Sync with Me</button>
 				<!--<button @click="randomKPop">RandomKPop</button>-->
 				<button @click="changeSong">Change Video</button>
 				<input ref="youtubeIdInput" v-model="youtubeId" placeholder="Enter Youtube ID">
@@ -92,9 +93,9 @@
 						videoId: 'q0hyYWKXF0Q',
 						events: [],
 						username: "",
-						youtubeId: "", //2S24-y0Ij3Y
+						youtubeId: "2S24-y0Ij3Y", //2S24-y0Ij3Y
 						randomkpop:[],
-                        currentTime: []
+                        currentTime: ""
 
 						//seekTo
 						// seconds: "35",
@@ -103,228 +104,194 @@
 		},
 		created(){
            
-			this.socket = io("https://3000-de8aff82-e463-44b6-8808-3e3811273d8f.ws-eu01.gitpod.io/"); // http://192.168.100.3:3000/" "http://localhost:3000/" Client socket to > server adress / Gitpod change 
+			this.socket = io("http://localhost:3000/"); // http://192.168.100.3:3000/" "http://localhost:3000/" Client socket to > server adress / Gitpod change 
 		},
 		mounted(){
-            
-				//Shutting this off for it is annoying atm
-				//var username = prompt('What\'s your username?');
 
-				//if (username){ 
-
-					// this.socket.emit('little_newbie', username);
-
-    // Sectia primire de catre Client inapoi de la server
-    this.socket.on('disconnect', data => {  
-            
-        this.events.push(data);
-
-    })
-
-
-
-
-
-    this.socket.on('playing', data => {  
-            //console.log(data.currentTime)
-            //this.events.push(data);
-            //To play all
-            this.events.push(data);
-            this.player.playVideo();
-            //console.log(data.id+ "/" + data.currentTime) Works
-            //console.log(data)      
-    })
-
-    this.socket.on('paused', data => {  
-        this.events.push(data);
-        this.player.pauseVideo();//to pause all 
-    })
-
-    this.socket.on('pause_all', data => {  
-        this.events.push(data);
-        this.player.pauseVideo();
-    })
-    this.socket.on('play_all', data => {  
-
-        this.events.push(data);
-        this.player.playVideo();
-
-        // this.currentTime.push(data).then(value => {
-
-                //here i would need to push values to array, compare and seekTo top value
-
-        //     //this.player.playVideo();
-        //     //console.log(data.id+ "/" + data.currentTime) Works
-        //     //console.log(data)      
-        // });
-       
-    })
-    this.socket.on('getToThisMoment', data => {  
-
-        //Works now - Seek forward
-        //this.player.seekTo(5, true);
-        this.player.seekTo(20.7, true);
-        this.events.push(data);
-        //     this.currentTime.push(data.currentTime)
-        //      this.player.seekTo(currentTime[0], true);
-        //    // console.log(this.currentTime)  
-        //    // this.currentTime=[];
-    
-    })
-
-
-
-
-    this.socket.on('ready', data => {  
-            this.events.push(data); //write to array, which will output to dom with v-for
-    })
-    this.socket.on('ended', data => {  
-            this.events.push(data); //write to array, which will output to dom with v-for
-    })
-
-    this.socket.on('backToStart_all', data => {  
-
-        //Works now - Seek forward
-        //this.player.seekTo(5, true);
-        this.events.push(data);
-        this.player.seekTo(0, true);
-            
-    })
-    this.socket.on('backToStart_all', data => {  
-
-        //Works now - Seek forward
-        //this.player.seekTo(5, true);
-        this.events.push(data);
-
-            this.player.seekTo(0, true);
-            
-    })
-
-    this.socket.on('mute_all', data => {  
-    
-        this.player.mute()
-        this.events.push(data);
-    })
-    this.socket.on('unmute_all', data => { 
-        this.player.unMute()
-        this.events.push(data);
-    })
-    this.socket.on('changeSong_all', data => {  
-
-        //console.log( 'This comes from mounted' + this.youtubeId)	
-        //So this socket gets but not all.. the pbolem is in Socketio emit!
-        this.player.loadVideoById(data.videoid, 0, "large")
-        this.events.push(data);
-        //console.log(data.youtubeId); This check is OK!
-   
-    })
-    this.socket.on('playerCurrentTime', data => { 
-
-        this.player.getCurrentTime().then(value => {
-              console.log('This is on:'+value)
-              
-        });
-        //You could so something here to set all players same currentTime
-        this.events.push(data);
-    })
-
-
-
-
-    // this.socket.on('little_newbie', data => {  
-    // 	this.events.push(data); //write to array, which will output to dom with v-for
-    // })
-
-    //}
-
-    //setInterval(this.getNow, 5000);//refs are available only after mounted
-
-},
-  	    computed: {
-    	player() {
-				return  this.$refs.youtube.player
-			}
-        },
-		methods: {
-			ready (event) {
-					this.player = event.target;
-					console.log('Player is ready.')
-					this.socket.emit("ready");
-			},
-			ended (){
-				console.log('Yay. You`ve stayed until the end . Video ended!')
-				this.socket.emit("ended");
-			}, 
-			playVideo() {
-				this.player.playVideo()
-			},
-			pauseVideo(){
-				this.player.pauseVideo()
-			},
-			// seekTo(){
-			// 	this.player.seekTo(5 , true)
-			// },
-			playAll(){
-				this.socket.emit("play_all")
-			},
-			pauseAll(){
-				this.socket.emit("pause_all")
-			},
-			backToStart(){
-					this.socket.emit("backToStart_all")
-			},
-            muteAll(){
-				this.socket.emit("mute_all")
-			},
-            unmuteAll(){
-				this.socket.emit("unmute_all")
-			},
-            changeSong(){
-				// console.log(this.youtubeId); OK check
+			
+			this.socket.on('pause_all', data => {  
+				this.events.push(data);
+				this.player.pauseVideo();
+			})
+			this.socket.on('play_all', data => {  
+				this.events.push(data);
+				this.player.playVideo();
+			})
+			this.socket.on('seekOnOthers', data => {  
+				this.events.push(data) //1. Write to dom - Check
+				//console.log('I was ordered to seek to ' + " " + data.senderCurrentTime) 2. Test in log - Check
+				//Works now - Seek forward
+				this.player.seekTo(data.senderCurrentTime, true); // 3. Siblings seek to sender time
 				
-				// TO DO - Determine if playlist and play it all!
+				//This kind of stuff on return
+				//this.player.seekTo(value.emitterCurrentTime, true);
 
-				//Determine if typed a full link or just ID
-				if  (this.youtubeId.includes("www.youtube.com/watch")){
-					this.socket.emit("changeSong_all", this.$youtube.getIdFromUrl(this.youtubeId))
-                    //this.$refs.youtubeIdInput.value="";
-				} else {
-					this.socket.emit("changeSong_all", this.youtubeId)
-                    //this.$refs.youtubeIdInput.value="";
-				}
 
-                
+
+				//this.events.push(data);
+				//     this.currentTime.push(data.currentTime)
+				//      this.player.seekTo(currentTime[0], true);
+				//    // console.log(this.currentTime)  
+				//    // this.currentTime=[];
+			
+			})
+			//Shutting this off for it is annoying atm
+			//var username = prompt('What\'s your username?');
+
+			//if (username){ 
+
+				// this.socket.emit('little_newbie', username);
+
+				// Sectia primire de catre Client inapoi de la server
+			this.socket.on('disconnect', data => {  
 					
-					//console.log(this.youtubeId)	
-					//So it can access data () with this
-			},
+				this.events.push(data);
+
+			})
+			// I can do click on player playing/ paused after
+			this.socket.on('ready', data => {  
+					this.events.push(data); //write to array, which will output to dom with v-for
+			})
+			this.socket.on('ended', data => {  
+					this.events.push(data); //write to array, which will output to dom with v-for
+			})
+
+			this.socket.on('backToStart_all', data => {  
+
+				//Works now - Seek forward
+				//this.player.seekTo(5, true);
+				this.events.push(data);
+				this.player.seekTo(0, true);
+					
+			})
+
+			this.socket.on('mute_all', data => {  
+			
+				this.player.mute()
+				this.events.push(data);
+			})
+			this.socket.on('unmute_all', data => { 
+				this.player.unMute()
+				this.events.push(data);
+			})
+			this.socket.on('changeSong_all', data => {  
+
+				//console.log( 'This comes from mounted' + this.youtubeId)	
+				//So this socket gets but not all.. the pbolem is in Socketio emit!
+				this.player.loadVideoById(data.videoid, 0, "large")
+				this.events.push(data);
+				//console.log(data.youtubeId); This check is OK!
+		
+			})
+			this.socket.on('playerCurrentTime', data => { 
+
+				this.player.getCurrentTime().then(value => {
+					console.log('This is on:'+value)
+					
+				});
+				//You could so something here to set all players same currentTime
+				this.events.push(data);
+			})
 
 
-            //1. When detects playing/ pausing, send to server
-            playing () {
+			// this.socket.on('little_newbie', data => {  
+			// 	this.events.push(data); //write to array, which will output to dom with v-for
+			// })
 
-                this.player.getCurrentTime().then(value => {
-                    // Do something with the value here
-                    //console.log('See'+ value)
-                    this.socket.emit("playing", value)
-                });
-						
-			},
-			paused () {
-				
-                this.player.getCurrentTime().then(value => {
-                    // Do something with the value here
-                    //console.log('I paused at '+ value)
-                    this.socket.emit("paused", value)
-                });
+			//}
 
-			},
-            getToThisMoment(){
-				this.socket.emit("getToThisMoment")
-			},
+			//setInterval(this.getNow, 5000);//refs are available only after mounted
 
 		},
-	}
+		computed: {
+			player() {
+					return  this.$refs.youtube.player
+				}
+			},
+		methods: {
+				seekOnOthers(){
+					// Get Sender current time and pass it along seekOnOthers
+					this.player.getCurrentTime().then(value => {
+						console.log('This is on:'+value)
+						this.socket.emit("seekOnOthers", value)
+					});
+					
+				},
+				ready (event) {
+						this.player = event.target;
+						console.log('Player is ready.')
+						this.socket.emit("ready");
+				},
+				ended (){
+					console.log('Yay. You`ve stayed until the end . Video ended!')
+					this.socket.emit("ended");
+				}, 
+				playVideo() {
+					this.player.playVideo()
+				},
+				pauseVideo(){
+					this.player.pauseVideo()
+				},
+				// seekTo(){
+				// 	this.player.seekTo(5 , true)
+				// },
+				playAll(){
+					this.socket.emit("play_all")
+				},
+				pauseAll(){
+					this.socket.emit("pause_all")
+				},
+				backToStart(){
+						this.socket.emit("backToStart_all")
+				},
+				muteAll(){
+					this.socket.emit("mute_all")
+				},
+				unmuteAll(){
+					this.socket.emit("unmute_all")
+				},
+				changeSong(){
+					// console.log(this.youtubeId); OK check
+					
+					// TO DO - Determine if playlist and play it all!
+
+					//Determine if typed a full link or just ID
+					if  (this.youtubeId.includes("www.youtube.com/watch")){
+						this.socket.emit("changeSong_all", this.$youtube.getIdFromUrl(this.youtubeId))
+						//this.$refs.youtubeIdInput.value="";
+					} else {
+						this.socket.emit("changeSong_all", this.youtubeId)
+						//this.$refs.youtubeIdInput.value="";
+					}
+
+					
+						
+						//console.log(this.youtubeId)	
+						//So it can access data () with this
+				},
+				//1. When detects playing/ pausing, send to server
+				playing () {
+
+					this.player.getCurrentTime().then(value => {
+						// Do something with the value here
+						//console.log('See'+ value)
+						this.socket.emit("playing", value)
+					});
+							
+				},
+				paused () {
+					
+					this.player.getCurrentTime().then(value => {
+						// Do something with the value here
+						//console.log('I paused at '+ value)
+						this.socket.emit("paused", value)
+					});
+
+				},
+
+
+			},
+		}
 	</script>
 
 	<!-- Add "scoped" attribute to limit CSS to this component only -->
