@@ -26,16 +26,16 @@
 				
 				> 
 					<span class="id">{{event.id}} </span>  <!-- .substring(0, 8)-->
-					<span :class="{'play': event.action.includes('playing at'), 
-                            'pause': event.action.includes('paused at'), 
-                            '': event.action == 'joined room.', 
-                            'leftRoom': event.action == 'left room.',
-                            'endView' : event.action == 'ended watching.',
-												
-												}"
-					> {{event.action}}
-					</span>  
-                
+					<span :class="{'play': event.action.includes('is playing'), 
+						'pause': event.action.includes('paused at'), 
+						'': event.action == 'joined room.', 
+						'leftRoom': event.action == 'left room.',
+						'endView' : event.action == 'ended watching.',
+										
+										}"
+						> {{event.action}}
+					</span>   
+
                     <a style="color: lightblue" 
                     class="videoid" 
                     v-if="event.videoid" 
@@ -107,16 +107,6 @@
 			this.socket = io("http://localhost:3000/"); // http://192.168.100.3:3000/" "http://localhost:3000/" Client socket to > server adress / Gitpod change 
 		},
 		mounted(){
-
-			
-			this.socket.on('pause_all', data => {  
-				this.events.push(data);
-				this.player.pauseVideo();
-			})
-			this.socket.on('play_all', data => {  
-				this.events.push(data);
-				this.player.playVideo();
-			})
 			this.socket.on('seekOnOthers', data => {  
 				this.events.push(data) //1. Write to dom - Check
 				//console.log('I was ordered to seek to ' + " " + data.senderCurrentTime) 2. Test in log - Check
@@ -135,6 +125,19 @@
 				//    // this.currentTime=[];
 			
 			})
+			
+
+
+
+			this.socket.on('pause_all', data => {  
+				this.events.push(data);
+				this.player.pauseVideo();
+			})
+			this.socket.on('play_all', data => {  
+				this.events.push(data);
+				this.player.playVideo();
+			})
+
 			//Shutting this off for it is annoying atm
 			//var username = prompt('What\'s your username?');
 

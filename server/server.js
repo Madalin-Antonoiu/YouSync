@@ -2,9 +2,55 @@ const Express = require("express")(); //constructor (inst. of var app =express()
 const Http = require("http").Server(Express);
 const Socketio = require("socket.io")(Http);
 
+//Socketio.emit - sends to all, including sender
+//socket.broadcast.emit - sends to all BUT sender
+//socket.emit - sends back to sender only
 
 Socketio.on("connection", socket => {
 
+    socket.on('seekOnOthers', value => {
+        
+        socket.senderCurrentTime = value; // 1. Get the currentTime of the Sender into socket.xx
+
+        console.log("Go to my moment, brothers!");
+        //Broadcast to all sockets but Sender!
+        Socketio.emit('seekOnOthers', {
+            action: "Sender says go to this moment : ",
+            senderCurrentTime: socket.senderCurrentTime // 2. Broadcast (send  to others) in the form of senderCurrentTime
+        })
+
+    });
+
+
+
+
+
+
+
+    socket.on('play_all', data => {
+
+        console.log('I command all players play now!');
+
+        Socketio.emit('play_all', {
+                id: socket.id.substring(0,6),
+                action: "is playing a video for all.",
+                timestamp: socket.handshake.time
+
+            }) // send to all clients
+
+    });
+    socket.on('pause_all', data => {
+
+        console.log('I command all players to pause now!');
+
+        Socketio.emit('pause_all', {
+            id: socket.id.substring(0,6),
+            action: "has paused the video for everyone.",
+            timestamp: socket.handshake.time
+
+        })
+
+    });
     // If connected & playing - Server console logs - socket.on
     socket.on("disconnect", data => {
         console.log(socket.id.substring(0,6) + ' disconnected.')
@@ -34,30 +80,7 @@ Socketio.on("connection", socket => {
                 timestamp: socket.handshake.time
             }) // send to all clients
     })
-    socket.on('play_all', data => {
 
-        console.log('I command all players play now!');
-
-        Socketio.emit('play_all', {
-                id: socket.id.substring(0,6),
-                action: "is playing a video for all.",
-                timestamp: socket.handshake.time
-
-            }) // send to all clients
-
-    });
-    socket.on('pause_all', data => {
-
-        console.log('I command all players to pause now!');
-
-        Socketio.emit('pause_all', {
-            id: socket.id.substring(0,6),
-            action: "has paused the video for everyone.",
-            timestamp: socket.handshake.time
-
-        })
-
-    });
     socket.on('backToStart_all', data => {
 
         console.log('Let`s Go Back To Start Guys!');
@@ -68,15 +91,7 @@ Socketio.on("connection", socket => {
         })
 
     });
-    socket.on('getToThisMoment', data => {
 
-        console.log("Go to this moment all!");
-
-        Socketio.emit('getToThisMoment', {
-            action: "Go to this moment all!",
-        })
-
-    });
     socket.on('mute_all', data => {
 
         Socketio.emit('mute_all', {
@@ -109,7 +124,7 @@ Socketio.on("connection", socket => {
 
 
 
-
+    //They are not receiving any calls, disabled on client
     socket.on("playing", value => {
         
          socket.currentTime = value.toFixed(3)//round to 3 digits only
