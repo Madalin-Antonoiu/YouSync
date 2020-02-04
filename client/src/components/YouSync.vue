@@ -61,7 +61,7 @@
 				<button @click="playAll">Play All</button>
 				<button @click="pauseAll">Pause All</button>
 				<button @click="backToStart">FromStart All</button>
-				<button @click="forwardFive">GoTo S5 All</button>
+				<button @click="getToThisMoment">GoTo This Moment</button>
 				<!--<button @click="randomKPop">RandomKPop</button>-->
 				<button @click="changeSong">Change Video</button>
 				<input ref="youtubeIdInput" v-model="youtubeId" placeholder="Enter Youtube ID">
@@ -94,8 +94,8 @@
 						username: "",
 						youtubeId: "", //2S24-y0Ij3Y
 						randomkpop:[],
+                        currentTime: []
 
-                
 						//seekTo
 						// seconds: "35",
 						// allowSeekAhead : true,
@@ -121,20 +121,25 @@
 
     })
 
+
+
+
+
     this.socket.on('playing', data => {  
             //console.log(data.currentTime)
+            //this.events.push(data);
+            //To play all
             this.events.push(data);
-            this.player.playVideo(); //To play all
-  
-            
+            this.player.playVideo();
+            //console.log(data.id+ "/" + data.currentTime) Works
+            //console.log(data)      
     })
 
-    //Embed Paused click
     this.socket.on('paused', data => {  
         this.events.push(data);
         this.player.pauseVideo();//to pause all 
     })
-    //The button
+
     this.socket.on('pause_all', data => {  
         this.events.push(data);
         this.player.pauseVideo();
@@ -143,12 +148,29 @@
 
         this.events.push(data);
         this.player.playVideo();
+
+        // this.currentTime.push(data).then(value => {
+
+                //here i would need to push values to array, compare and seekTo top value
+
+        //     //this.player.playVideo();
+        //     //console.log(data.id+ "/" + data.currentTime) Works
+        //     //console.log(data)      
+        // });
        
     })
+    this.socket.on('getToThisMoment', data => {  
 
-
-
-
+        //Works now - Seek forward
+        //this.player.seekTo(5, true);
+        this.player.seekTo(20.7, true);
+        this.events.push(data);
+        //     this.currentTime.push(data.currentTime)
+        //      this.player.seekTo(currentTime[0], true);
+        //    // console.log(this.currentTime)  
+        //    // this.currentTime=[];
+    
+    })
 
 
 
@@ -175,15 +197,6 @@
         this.events.push(data);
 
             this.player.seekTo(0, true);
-            
-    })
-    this.socket.on('forwardFive_all', data => {  
-
-        //Works now - Seek forward
-        //this.player.seekTo(5, true);
-        this.events.push(data);
-
-            this.player.seekTo(5, true);
             
     })
 
@@ -248,9 +261,9 @@
 			pauseVideo(){
 				this.player.pauseVideo()
 			},
-			seekTo(){
-				this.player.seekTo(5 , false)
-			},
+			// seekTo(){
+			// 	this.player.seekTo(5 , true)
+			// },
 			playAll(){
 				this.socket.emit("play_all")
 			},
@@ -260,10 +273,6 @@
 			backToStart(){
 					this.socket.emit("backToStart_all")
 			},
-			forwardFive(){
-					this.socket.emit("forwardFive_all")
-			},
-
             muteAll(){
 				this.socket.emit("mute_all")
 			},
@@ -290,12 +299,13 @@
 					//So it can access data () with this
 			},
 
+
             //1. When detects playing/ pausing, send to server
             playing () {
 
                 this.player.getCurrentTime().then(value => {
                     // Do something with the value here
-                    //console.log('I am watching at '+ value)
+                    //console.log('See'+ value)
                     this.socket.emit("playing", value)
                 });
 						
@@ -308,6 +318,9 @@
                     this.socket.emit("paused", value)
                 });
 
+			},
+            getToThisMoment(){
+				this.socket.emit("getToThisMoment")
 			},
 
 		},

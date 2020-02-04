@@ -68,12 +68,12 @@ Socketio.on("connection", socket => {
         })
 
     });
-    socket.on('forwardFive_all', data => {
+    socket.on('getToThisMoment', data => {
 
-        console.log("Go to second 5 y'all!");
+        console.log("Go to this moment all!");
 
-        Socketio.emit('forwardFive_all', {
-            action: "Go to second 5 y'all!",
+        Socketio.emit('getToThisMoment', {
+            action: "Go to this moment all!",
         })
 
     });
@@ -114,8 +114,9 @@ Socketio.on("connection", socket => {
         
          socket.currentTime = value.toFixed(3)//round to 3 digits only
         //async!
-        //console.log(dt.toString().substr(0, dt.toString().length - 3));
-        //console.log(socket.id.substring(0,6)  + 'played  ' + socket.currentTime )
+        //Each socket.currentTime contains the currentTime
+        //Got to separate values for client 1 and  client2 here on in Client
+        console.log( socket.id.substring(0,6) + 'played  ' + socket.currentTime)
 
         Socketio.emit('playing', {
                 id: socket.id.substring(0,6),
