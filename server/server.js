@@ -16,15 +16,6 @@ Socketio.on("connection", socket => {
         })
 
     })
-    socket.on("playing", data => {
-        console.log(socket.id.substring(0,6) + ' is watching.') // log here socket.handshake.time 
-            //.slice to make it shorter in client
-        Socketio.emit('playing', {
-                id: socket.id.substring(0,6),
-                action: "is watching.",
-                timestamp: socket.handshake.time
-            }) // send to all clients
-    })
     socket.on("ready", data => {
         console.log( socket.id.substring(0,6) + "'s player is ready.") // log here
 
@@ -50,6 +41,7 @@ Socketio.on("connection", socket => {
         Socketio.emit('play_all', {
                 id: socket.id.substring(0,6),
                 action: "is playing a video for all.",
+                timestamp: socket.handshake.time
 
             }) // send to all clients
 
@@ -59,8 +51,9 @@ Socketio.on("connection", socket => {
         console.log('I command all players to pause now!');
 
         Socketio.emit('pause_all', {
-             id: socket.id.substring(0,6),
+            id: socket.id.substring(0,6),
             action: "has paused the video for everyone.",
+            timestamp: socket.handshake.time
 
         })
 
@@ -77,10 +70,10 @@ Socketio.on("connection", socket => {
     });
     socket.on('forwardFive_all', data => {
 
-        console.log("Forward by 5 y'all!");
+        console.log("Go to second 5 y'all!");
 
         Socketio.emit('forwardFive_all', {
-            action: "Forward by 5 y'all!",
+            action: "Go to second 5 y'all!",
         })
 
     });
@@ -114,11 +107,31 @@ Socketio.on("connection", socket => {
 
     });  
 
+
+
+
+    socket.on("playing", value => {
+        
+         socket.currentTime = value.toFixed(3)//round to 3 digits only
+        //async!
+        //console.log(dt.toString().substr(0, dt.toString().length - 3));
+        //console.log(socket.id.substring(0,6)  + 'played  ' + socket.currentTime )
+
+        Socketio.emit('playing', {
+                id: socket.id.substring(0,6),
+                action: "playing at",
+                currentTime: socket.currentTime,
+                timestamp: socket.handshake.time
+                 //remove last 3 digits
+            }) // send to all clients
+    
+        });
+
     socket.on('paused', value => {
 
-        socket.currentTime = value.toString().substr(0, value.toString().length - 4);//cut last 4 digits and make it string
+        socket.currentTime = value.toFixed(3);//cut last 4 digits and make it string
         
-        console.log(socket.currentTime  + " " + socket.id )
+        //console.log(socket.id.substring(0,6)  + 'paused ' + socket.currentTime  )
 
         Socketio.emit('paused', {
                 id: socket.id.substring(0,6),

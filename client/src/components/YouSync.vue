@@ -26,8 +26,8 @@
 				
 				> 
 					<span class="id">{{event.id}} </span>  <!-- .substring(0, 8)-->
-					<span :class="{'play': event.action === 'is watching.', 
-                            'pause': event.action.includes('paused'), 
+					<span :class="{'play': event.action.includes('playing at'), 
+                            'pause': event.action.includes('paused at'), 
                             '': event.action == 'joined room.', 
                             'leftRoom': event.action == 'left room.',
                             'endView' : event.action == 'ended watching.',
@@ -45,7 +45,7 @@
                     >link</a>
 
                     <span v-if="event.currentTime">{{event.currentTime}} </span>
-
+                    <!--<span v-if="event.playCurrentTime">{{event.playCurrentTime}} </span> -->
 			
 					<!-- <span ref="fromNow" >{{ event.timestamp  }}</span>   Future reference, or local component-->
 					<dynamic-from-now class="timestamp" :interval="60000"></dynamic-from-now>
@@ -93,16 +93,20 @@
 						events: [],
 						username: "",
 						youtubeId: "", //2S24-y0Ij3Y
-						randomkpop:[]
+						randomkpop:[],
+
+                
 						//seekTo
 						// seconds: "35",
 						// allowSeekAhead : true,
 			}
 		},
 		created(){
+           
 			this.socket = io("https://3000-de8aff82-e463-44b6-8808-3e3811273d8f.ws-eu01.gitpod.io/"); // http://192.168.100.3:3000/" "http://localhost:3000/" Client socket to > server adress / Gitpod change 
 		},
 		mounted(){
+            
 				//Shutting this off for it is annoying atm
 				//var username = prompt('What\'s your username?');
 
@@ -116,42 +120,31 @@
         this.events.push(data);
 
     })
+
     this.socket.on('playing', data => {  
-
-            /* Runfunction that :
-                checks if every player is loaded for that
-                checks all players current time and sets it equal
-                The volume should be individual for everyone *
-
-
-            
-            */
-
-
-            this.player.playVideo(); //To play all
+            //console.log(data.currentTime)
             this.events.push(data);
-        //this.player.playVideo(); // Send command to play video on all clients;
-        
+            this.player.playVideo(); //To play all
+  
             
     })
-
-
-
-
-
 
     //Embed Paused click
     this.socket.on('paused', data => {  
-            this.events.push(data);
-            
-            this.player.pauseVideo();//to pause all 
+        this.events.push(data);
+        this.player.pauseVideo();//to pause all 
     })
     //The button
     this.socket.on('pause_all', data => {  
-        this.player.pauseVideo();
         this.events.push(data);
+        this.player.pauseVideo();
     })
+    this.socket.on('play_all', data => {  
 
+        this.events.push(data);
+        this.player.playVideo();
+       
+    })
 
 
 
@@ -166,11 +159,7 @@
     this.socket.on('ended', data => {  
             this.events.push(data); //write to array, which will output to dom with v-for
     })
-    this.socket.on('play_all', data => {  
-    
-        this.player.playVideo();
-            this.events.push(data);
-    })
+
     this.socket.on('backToStart_all', data => {  
 
         //Works now - Seek forward
@@ -240,7 +229,7 @@
 },
   	    computed: {
     	player() {
-				return this.$refs.youtube.player
+				return  this.$refs.youtube.player
 			}
         },
 		methods: {
@@ -253,19 +242,6 @@
 				console.log('Yay. You`ve stayed until the end . Video ended!')
 				this.socket.emit("ended");
 			}, 
-			playing () {
-				console.log('\o/ we are watching!!!')
-				this.socket.emit("playing");//1. Emit from client to server, from server back, and client show again		
-			},
-			paused () {
-				
-                this.player.getCurrentTime().then(value => {
-                    // Do something with the value here
-                    console.log('I paused at '+ value)
-                    this.socket.emit("paused", value)
-                });
-
-			},
 			playVideo() {
 				this.player.playVideo()
 			},
@@ -312,6 +288,26 @@
 					
 					//console.log(this.youtubeId)	
 					//So it can access data () with this
+			},
+
+            //1. When detects playing/ pausing, send to server
+            playing () {
+
+                this.player.getCurrentTime().then(value => {
+                    // Do something with the value here
+                    //console.log('I am watching at '+ value)
+                    this.socket.emit("playing", value)
+                });
+						
+			},
+			paused () {
+				
+                this.player.getCurrentTime().then(value => {
+                    // Do something with the value here
+                    //console.log('I paused at '+ value)
+                    this.socket.emit("paused", value)
+                });
+
 			},
 
 		},
