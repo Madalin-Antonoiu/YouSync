@@ -25,15 +25,6 @@ Socketio.on("connection", socket => {
                 timestamp: socket.handshake.time
             }) // send to all clients
     })
-    socket.on("paused", data => {
-        console.log(socket.id.substring(0,6) + 'is paused.') // log here
-
-        Socketio.emit('paused', {
-                id: socket.id.substring(0,6), //socket.username + " " 
-                action: "is paused.",
-                timestamp: socket.handshake.time
-            }) // send to all clients
-    })
     socket.on("ready", data => {
         console.log( socket.id.substring(0,6) + "'s player is ready.") // log here
 
@@ -121,22 +112,30 @@ Socketio.on("connection", socket => {
             videoid: socket.youtubeId
         })
 
-    });
-    
-    socket.on('playerCurrentTime', value => {
-        socket.currentTime = value;
+    });  
+
+    socket.on('paused', value => {
+
+        socket.currentTime = value.toString().substr(0, value.toString().length - 4);//cut last 4 digits and make it string
+        
         console.log(socket.currentTime  + " " + socket.id )
 
-        Socketio.emit('playerCurrentTime', {
+        Socketio.emit('paused', {
                 id: socket.id.substring(0,6),
-                action: "I am on",
-                currentTime: socket.currentTime
+                action: "paused at",
+                currentTime: socket.currentTime,
+                timestamp: socket.handshake.time
+                 //remove last 3 digits
             }) // send to all clients
 
     });
 
 
-        // socket.on('little_newbie', username => {
+
+
+
+
+    // socket.on('little_newbie', username => {
     //     socket.username = username;
     //     console.log(socket.username + " " + socket.id + ' is speaking to me! ');
 

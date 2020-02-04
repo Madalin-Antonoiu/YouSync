@@ -27,7 +27,7 @@
 				> 
 					<span class="id">{{event.id}} </span>  <!-- .substring(0, 8)-->
 					<span :class="{'play': event.action === 'is watching.', 
-                            'pause': event.action === 'is paused.', 
+                            'pause': event.action.includes('paused'), 
                             '': event.action == 'joined room.', 
                             'leftRoom': event.action == 'left room.',
                             'endView' : event.action == 'ended watching.',
@@ -67,7 +67,6 @@
 				<input ref="youtubeIdInput" v-model="youtubeId" placeholder="Enter Youtube ID">
                 <button @click="muteAll">Mute All</button>
                 <button @click="unmuteAll">Unmute All</button>
-                <button @click="playerCurrentTime">Get Current Time</button>
 				<!-- <p>Message is: {{ youtubeId }}</p>   -->
 		</div>
 
@@ -135,11 +134,32 @@
         
             
     })
+
+
+
+
+
+
+    //Embed Paused click
     this.socket.on('paused', data => {  
             this.events.push(data);
             
             this.player.pauseVideo();//to pause all 
     })
+    //The button
+    this.socket.on('pause_all', data => {  
+        this.player.pauseVideo();
+        this.events.push(data);
+    })
+
+
+
+
+
+
+
+
+
     this.socket.on('ready', data => {  
             this.events.push(data); //write to array, which will output to dom with v-for
     })
@@ -150,10 +170,6 @@
     
         this.player.playVideo();
             this.events.push(data);
-    })
-    this.socket.on('pause_all', data => {  
-        this.player.pauseVideo();
-        this.events.push(data);
     })
     this.socket.on('backToStart_all', data => {  
 
@@ -236,14 +252,19 @@
 			ended (){
 				console.log('Yay. You`ve stayed until the end . Video ended!')
 				this.socket.emit("ended");
-			},
+			}, 
 			playing () {
 				console.log('\o/ we are watching!!!')
 				this.socket.emit("playing");//1. Emit from client to server, from server back, and client show again		
 			},
 			paused () {
-				console.log('Video paused')
-				this.socket.emit("paused");
+				
+                this.player.getCurrentTime().then(value => {
+                    // Do something with the value here
+                    console.log('I paused at '+ value)
+                    this.socket.emit("paused", value)
+                });
+
 			},
 			playVideo() {
 				this.player.playVideo()
@@ -292,19 +313,6 @@
 					//console.log(this.youtubeId)	
 					//So it can access data () with this
 			},
-            playerCurrentTime(){
-               
-
-                this.player.getCurrentTime().then(value => {
-                    // Do something with the value here
-                    console.log(value);
-                    this.socket.emit("playerCurrentTime", value)
-                });
-
-
-              
-                
-            }
 
 		},
 	}
