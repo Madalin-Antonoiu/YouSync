@@ -63,7 +63,7 @@
 				<button @click="playAll">Play All</button>
 				<button @click="pauseAll">Pause All</button>
 				<button @click="backToStart">FromStart All</button>
-				<button @click="seekOnOthers">Sync with Me</button>
+				<button ref="syncWithMe" @click="seekOnOthers">Sync with Me</button>
 				<!--<button @click="randomKPop">RandomKPop</button>-->
 				<button @click="changeSong">Change Video</button>
 				<input ref="youtubeIdInput" v-model="youtubeId" placeholder="Enter Youtube ID">
@@ -92,7 +92,7 @@
       					},
 						context: 0,
 						position :{x: 0, y: 0},
-						videoId: '0r6C3z3TEK',
+						videoId: 'guXMb7zLblM',
 						events: [],
 						username: "",
 						youtubeId: "2S24-y0Ij3Y", //2S24-y0Ij3Y
@@ -125,6 +125,43 @@
 			}, 1000)
 			
 
+			
+			this.socket.on('getCurrentTime', data => {  
+
+				// If there is data to log
+			
+					// console.log('I am this client time' + this.personalTime)
+					// console.log('I am other client time' + this.currentTime)
+   
+
+				// #### THis is the magical formula i`ve been waiting to develop ! It finally compares both times without delay! ##############
+				this.player.getCurrentTime().then(value => {
+
+						if (value < data.currentTime - 0.150 || value > data.currentTime + 0.150) {
+						
+							//this.player.seekTo(data.currentTime, true); // might need to time it out by .400 or so
+						
+							this.$refs.syncWithMe.click();
+
+							
+
+							// // Forces video to play right after seek
+							//
+							console.log('They are not in .2 sync')
+						} else {
+							console.log('Clients are in sync')
+						}
+					});
+					
+
+				// if(value.currentTime !== "0.000")
+				// console.log(this.currentTime) //Works
+				//this.events.push(data);
+			})
+
+
+
+
 			this.socket.on('playing', data => {  
 				//this.state = data.id + " is " + data.action;
 
@@ -135,45 +172,6 @@
 				this.events.push(data);
 			})
 
-			this.socket.on('getCurrentTime', data => {  
-
-				// If there is data to log
-			
-					// console.log('I am this client time' + this.personalTime)
-					// console.log('I am other client time' + this.currentTime)
-
-
-				// #### THis is the magical formula i`ve been waiting to develop ! It finally compares both times without delay! ##############
-				this.player.getCurrentTime().then(value => {
-						// Do something with the value here
-						//console.log(value)
-						
-						this.personalTime = value;
-						this.currentTime = data.currentTime;
-
-						if (this.personalTime < this.currentTime- .2 || this.personalTime > this.currentTime + .2) {
-							// player.seekTo(currTime);
-							// // Forces video to play right after seek
-							// player.playVideo()
-						console.log('They are not in .2 sync')
-							} else {
-							console.log('Clients are in sync')
-						}
-					});
-					
-
-
-
-
-				
-
-				// if(value.currentTime !== "0.000")
-				// console.log(this.currentTime) //Works
-
-
-
-				//this.events.push(data);
-			})
 
 			
 			this.socket.on('buffering', data => {  

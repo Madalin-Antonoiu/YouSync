@@ -27,22 +27,21 @@ Socketio.on("connection", socket => {
     //The magic !
     socket.on("getCurrentTime", value => {
         
-        socket.currentTime = parseFloat(value.toFixed(3));//round to 3 digits only
+        socket.currentTime = value;   //parseFloat(value.toFixed(3));//round to 3 digits only and keep it number
         socket.state = "at";
-
-       if (socket.currentTime !== 0.000){
-        console.log(socket.id.substring(0,6) + " " + socket.state + " " +  socket.currentTime)
-        } 
-
-
+        //from broadcast which would seek only to others
        socket.broadcast.emit('getCurrentTime', { // obtain only other client's data, not mine 
                id: socket.id.substring(0,6),
                action: socket.state ,
                currentTime: socket.currentTime,
                timestamp: socket.handshake.time
-                //remove last 3 digits
-        }) // send to all clients
-   
+        }) 
+    
+        // No longer needed to show up here and bloat the server
+        //    if (socket.currentTime !== 0.000){
+        //     console.log(socket.id.substring(0,6) + " " + socket.state + " " +  socket.currentTime)
+        //     } 
+ 
     });
 
 
