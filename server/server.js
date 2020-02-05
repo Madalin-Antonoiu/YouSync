@@ -1,6 +1,7 @@
 const Express = require("express")(); //constructor (inst. of var app =express())
 const Http = require("http").Server(Express);
 const Socketio = require("socket.io")(Http);
+const sessionsMap = {}
 
 //Socketio.emit - sends to all, including sender
 //socket.broadcast.emit - sends to all BUT sender
@@ -8,10 +9,52 @@ const Socketio = require("socket.io")(Http);
 
 Socketio.on("connection", socket => {
 
+    //Get data from both clients
+    // Socketio.emit('created');
+    // socket.on('created', value => {
+        
+    //     socket.currentTime = value; // 1. Get the currentTime of the Sender into socket.xx
+        
+        
+    //     //Broadcast to all sockets but Sender!
+    //     Socketio.emit('seekOnOthers', {
+    //         action: "Sender says go to this moment : ",
+    //         senderCurrentTime: socket.senderCurrentTime // 2. Broadcast (send  to others) in the form of senderCurrentTime
+    //     })
+
+    // });
+
+    //The magic !
+    socket.on("getCurrentTime", value => {
+        
+        socket.currentTime = parseFloat(value.toFixed(3));//round to 3 digits only
+        socket.state = "at";
+
+       if (socket.currentTime !== 0.000){
+        console.log(socket.id.substring(0,6) + " " + socket.state + " " +  socket.currentTime)
+        } 
+
+
+       socket.broadcast.emit('getCurrentTime', { // obtain only other client's data, not mine 
+               id: socket.id.substring(0,6),
+               action: socket.state ,
+               currentTime: socket.currentTime,
+               timestamp: socket.handshake.time
+                //remove last 3 digits
+        }) // send to all clients
+   
+    });
+
+
+
+
+
+
+
     socket.on('seekOnOthers', value => {
         
         socket.senderCurrentTime = value; // 1. Get the currentTime of the Sender into socket.xx
-
+        
         console.log("Go to my moment, brothers!");
         //Broadcast to all sockets but Sender!
         Socketio.emit('seekOnOthers', {
@@ -20,44 +63,84 @@ Socketio.on("connection", socket => {
         })
 
     });
-
-
-
-
-
-
-
-    socket.on('play_all', data => {
-
-        console.log('I command all players play now!');
-
-        Socketio.emit('play_all', {
-                id: socket.id.substring(0,6),
-                action: "is playing a video for all.",
-                timestamp: socket.handshake.time
-
-            }) // send to all clients
-
-    });
-    socket.on('pause_all', data => {
-
-        console.log('I command all players to pause now!');
-
-        Socketio.emit('pause_all', {
-            id: socket.id.substring(0,6),
-            action: "has paused the video for everyone.",
+    socket.on('getCurrentState', value => {
+        
+        socket.senderCurrentTime = value; // 1. Get the currentTime of the Sender into socket.xx
+        
+        console.log("Go to my moment, brothers!");
+        //Broadcast to all sockets but Sender!
+        Socketio.emit('getCurrentState', {
+            action: "I am a sibling and my current state is : ",
             timestamp: socket.handshake.time
-
         })
 
     });
+
+
+    socket.on("playing", value => {
+        
+        socket.currentTime = value.toFixed(3)//round to 3 digits only
+        socket.state = "playing";
+       //async!
+       //Each socket.currentTime contains the currentTime
+       //Got to separate values for client 1 and  client2 here on in Client
+       console.log( socket.id.substring(0,6) + " " + socket.state + " " +  socket.currentTime)
+        //So other knows my player state, my client doesnt need to know my client, only other(s)
+       socket.broadcast.emit('playing', {
+               id: socket.id.substring(0,6),
+               action: socket.state ,
+               currentTime: socket.currentTime,
+               timestamp: socket.handshake.time
+                //remove last 3 digits
+           }) // send to all clients
+   
+    });
+
+
+
+
+    socket.on('paused', value => {
+
+        socket.currentTime = value.toFixed(3)//round to 3 digits only
+        socket.state = "paused";
+
+        //console.log(socket.id.substring(0,6)  + 'paused ' + socket.currentTime  )
+
+        socket.broadcast.emit('paused', {
+                id: socket.id.substring(0,6),
+                action: socket.state,
+                currentTime: socket.currentTime,
+                timestamp: socket.handshake.time
+                 //remove last 3 digits
+            }) // send to all clients
+
+    });
+
+
+    socket.on("buffering", data => {
+        socket.state = "buffering";
+
+        console.log(socket.id + " " + socket.state ) // log here socket.handshake.time 
+            //.slice to make it shorter in client
+        socket.broadcast.emit('buffering', {
+                id: socket.id.substring(0,6),
+                action: socket.state ,
+                timestamp: socket.handshake.time
+            }) // send to all clients
+    })
+
+
+
+
     // If connected & playing - Server console logs - socket.on
     socket.on("disconnect", data => {
+
+        socket.state = "disconnected";
         console.log(socket.id.substring(0,6) + ' disconnected.')
 
         Socketio.emit('disconnect', {
             id: "💥"  + socket.id,
-            action: "left room.",
+            action:  socket.state,
             timestamp: socket.handshake.time
         })
 
@@ -122,44 +205,39 @@ Socketio.on("connection", socket => {
 
     });  
 
-
-
-    //They are not receiving any calls, disabled on client
-    socket.on("playing", value => {
-        
-         socket.currentTime = value.toFixed(3)//round to 3 digits only
-        //async!
-        //Each socket.currentTime contains the currentTime
-        //Got to separate values for client 1 and  client2 here on in Client
-        console.log( socket.id.substring(0,6) + 'played  ' + socket.currentTime)
-
-        Socketio.emit('playing', {
-                id: socket.id.substring(0,6),
-                action: "playing at",
-                currentTime: socket.currentTime,
-                timestamp: socket.handshake.time
-                 //remove last 3 digits
-            }) // send to all clients
-    
-        });
-
-    socket.on('paused', value => {
+    socket.on('play_all', value => {
 
         socket.currentTime = value.toFixed(3);//cut last 4 digits and make it string
         
         //console.log(socket.id.substring(0,6)  + 'paused ' + socket.currentTime  )
 
-        Socketio.emit('paused', {
+        Socketio.emit('play_all', {
                 id: socket.id.substring(0,6),
-                action: "paused at",
+                action: "is playing for all from",
                 currentTime: socket.currentTime,
                 timestamp: socket.handshake.time
                  //remove last 3 digits
             }) // send to all clients
 
+
+
     });
+    socket.on('pause_all', value => {
+
+        socket.currentTime = value.toFixed(3);//cut last 4 digits and make it string
+        
+        //console.log(socket.id.substring(0,6)  + 'paused ' + socket.currentTime  )
+
+        Socketio.emit('pause_all', {
+                id: socket.id.substring(0,6),
+                action: "has paused for everyone at",
+                currentTime: socket.currentTime,
+                timestamp: socket.handshake.time
+                 //remove last 3 digits
+            }) // send to all clients
 
 
+    });
 
 
 

@@ -9,6 +9,7 @@
 			@playing="playing" 
 			@paused="paused"
 			@ended="ended"	
+			@buffering="buffering"
 		></youtube>
 
 		<div id="youtubeLogs">
@@ -26,8 +27,8 @@
 				
 				> 
 					<span class="id">{{event.id}} </span>  <!-- .substring(0, 8)-->
-					<span :class="{'play': event.action.includes('is playing'), 
-						'pause': event.action.includes('paused at'), 
+					<span :class="{'play': event.action.includes('playing'), 
+						'pause': event.action.includes('paused'), 
 						'': event.action == 'joined room.', 
 						'leftRoom': event.action == 'left room.',
 						'endView' : event.action == 'ended watching.',
@@ -68,6 +69,7 @@
 				<input ref="youtubeIdInput" v-model="youtubeId" placeholder="Enter Youtube ID">
                 <button @click="muteAll">Mute All</button>
                 <button @click="unmuteAll">Unmute All</button>
+				<button @click="getCurrentState">Get Siblings Curr State</button>
 				<!-- <p>Message is: {{ youtubeId }}</p>   -->
 		</div>
 
@@ -90,12 +92,16 @@
       					},
 						context: 0,
 						position :{x: 0, y: 0},
-						videoId: 'q0hyYWKXF0Q',
+						videoId: '0r6C3z3TEK',
 						events: [],
 						username: "",
 						youtubeId: "2S24-y0Ij3Y", //2S24-y0Ij3Y
 						randomkpop:[],
-                        currentTime: ""
+						currentTime: "",
+						state: "",
+						personalTime: ""
+
+
 
 						//seekTo
 						// seconds: "35",
@@ -107,26 +113,116 @@
 			this.socket = io("http://localhost:3000/"); // http://192.168.100.3:3000/" "http://localhost:3000/" Client socket to > server adress / Gitpod change 
 		},
 		mounted(){
-			this.socket.on('seekOnOthers', data => {  
-				this.events.push(data) //1. Write to dom - Check
-				//console.log('I was ordered to seek to ' + " " + data.senderCurrentTime) 2. Test in log - Check
-				//Works now - Seek forward
-				this.player.seekTo(data.senderCurrentTime, true); // 3. Siblings seek to sender time
+
+			//Check state every second for other player, not self
+			// window.setInterval(() => {
+			// 	this.getNotifications()
+			// }, 1000)
+		
+			//get current time
+			window.setInterval(() => {
+				this.getCurrentTime();
+			}, 1000)
+			
+
+			this.socket.on('playing', data => {  
+				//this.state = data.id + " is " + data.action;
+
+				//console.log("This state is now :" + this.state ) //Works
+				//console.log(data.action + " " + data.id) //Works
+				this.state = data.id + " is " + data.action + " at "+ data.currentTime;
 				
-				//This kind of stuff on return
-				//this.player.seekTo(value.emitterCurrentTime, true);
+				this.events.push(data);
+			})
+
+			this.socket.on('getCurrentTime', data => {  
+
+				// If there is data to log
+			
+					// console.log('I am this client time' + this.personalTime)
+					// console.log('I am other client time' + this.currentTime)
+
+
+				// #### THis is the magical formula i`ve been waiting to develop ! It finally compares both times without delay! ##############
+				this.player.getCurrentTime().then(value => {
+						// Do something with the value here
+						//console.log(value)
+						
+						this.personalTime = value;
+						this.currentTime = data.currentTime;
+
+						if (this.personalTime < this.currentTime- .2 || this.personalTime > this.currentTime + .2) {
+							// player.seekTo(currTime);
+							// // Forces video to play right after seek
+							// player.playVideo()
+						console.log('They are not in .2 sync')
+							} else {
+							console.log('Clients are in sync')
+						}
+					});
+					
+
+
+
+
+				
+
+				// if(value.currentTime !== "0.000")
+				// console.log(this.currentTime) //Works
 
 
 
 				//this.events.push(data);
-				//     this.currentTime.push(data.currentTime)
-				//      this.player.seekTo(currentTime[0], true);
-				//    // console.log(this.currentTime)  
-				//    // this.currentTime=[];
-			
 			})
-			
 
+			
+			this.socket.on('buffering', data => {  
+				this.state = data.id + " is " + data.action;
+				//console.log("This state is now :" + this.state )
+				//console.log(data.action + " " + data.id) 
+				this.player.seekTo(data.senderCurrentTime, true);
+				this.events.push(data);
+			})
+
+			this.socket.on('paused', data => {  
+
+				this.state = data.id + " is " + data.action;
+				this.events.push(data);
+				
+			})
+			this.socket.on('disconnect', data => {  
+
+			
+				this.events.push(data);
+
+			})
+
+
+
+
+			this.socket.on('getCurrentState', data => {  
+
+				this.player.getPlayerState().then(value => {
+							console.log('My state is:'+ " " + value)
+				});
+
+			
+				//this.events.push(data);
+			})
+
+
+
+			this.socket.on('seekOnOthers', data => {  
+				 //1. Write to dom - Check
+				this.events.push(data)
+				//console.log('Received back from server:' + " "+ data.senderCurrentTime)
+				this.player.seekTo(data.senderCurrentTime, true);
+				
+				//All the logic should be done server side
+
+			})
+				
+					
 
 
 			this.socket.on('pause_all', data => {  
@@ -146,11 +242,7 @@
 				// this.socket.emit('little_newbie', username);
 
 				// Sectia primire de catre Client inapoi de la server
-			this.socket.on('disconnect', data => {  
-					
-				this.events.push(data);
 
-			})
 			// I can do click on player playing/ paused after
 			this.socket.on('ready', data => {  
 					this.events.push(data); //write to array, which will output to dom with v-for
@@ -186,15 +278,6 @@
 				//console.log(data.youtubeId); This check is OK!
 		
 			})
-			this.socket.on('playerCurrentTime', data => { 
-
-				this.player.getCurrentTime().then(value => {
-					console.log('This is on:'+value)
-					
-				});
-				//You could so something here to set all players same currentTime
-				this.events.push(data);
-			})
 
 
 			// this.socket.on('little_newbie', data => {  
@@ -215,12 +298,16 @@
 				seekOnOthers(){
 					// Get Sender current time and pass it along seekOnOthers
 					this.player.getCurrentTime().then(value => {
-						console.log('This is on:'+value)
+						console.log('The one i clicked seek button is on:'+value)
 						this.socket.emit("seekOnOthers", value)
 					});
 					
 				},
-				ready (event) {
+				getCurrentState(){
+					this.socket.emit("getCurrentState")
+						
+				},
+				ready (event) { //This guys tells me state of player, OH it shouts automatically
 						this.player = event.target;
 						console.log('Player is ready.')
 						this.socket.emit("ready");
@@ -239,10 +326,18 @@
 				// 	this.player.seekTo(5 , true)
 				// },
 				playAll(){
-					this.socket.emit("play_all")
+					this.player.getCurrentTime().then(value => {
+						// Do something with the value here
+						//console.log('I paused at '+ value)
+						this.socket.emit("play_all", value)
+					});
 				},
 				pauseAll(){
-					this.socket.emit("pause_all")
+					this.player.getCurrentTime().then(value => {
+						// Do something with the value here
+						//console.log('I paused at '+ value)
+						this.socket.emit("pause_all", value)
+					});
 				},
 				backToStart(){
 						this.socket.emit("backToStart_all")
@@ -272,29 +367,61 @@
 						//console.log(this.youtubeId)	
 						//So it can access data () with this
 				},
-				//1. When detects playing/ pausing, send to server
-				playing () {
 
-					this.player.getCurrentTime().then(value => {
-						// Do something with the value here
-						//console.log('See'+ value)
-						this.socket.emit("playing", value)
-					});
+				// All clients call these automatically when the API itself detects change
+				// playing () {
+
+				// 	// Don't initialize state here, but on server and receive ;)
+				// 	//this.state = "playing"
+
+				// 	this.player.getCurrentTime().then(value => {
+				// 		// Do something with the value here
+				// 		//console.log('See'+ value)
+						
+				// 		this.socket.emit("playing", value)
+				// 	});
 							
+				// },
+				// paused () {
+					
+				// 	this.player.getCurrentTime().then(value => {
+				// 		// Do something with the value here
+				// 		//console.log('I paused at '+ value)
+				// 		this.socket.emit("paused", value)
+				// 	});
+
+				// },
+				
+				// buffering (){
+				// 	//this.value = this.player.getPlayerState()
+					
+				// 	this.socket.emit("buffering");
+				// }, 
+				getNotifications(){
+					if (this.state !== "")
+					console.log(this.state)
 				},
-				paused () {
+				getCurrentTime(){
 					
 					this.player.getCurrentTime().then(value => {
 						// Do something with the value here
-						//console.log('I paused at '+ value)
-						this.socket.emit("paused", value)
+						//console.log(value)
+						
+						this.socket.emit("getCurrentTime", value)
+						
 					});
-
-				},
+					
+					
+					
+				}
 
 
 			},
-		}
+
+
+
+	}
+
 	</script>
 
 	<!-- Add "scoped" attribute to limit CSS to this component only -->
