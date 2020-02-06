@@ -10,6 +10,27 @@
 			@paused="paused"
 			@ended="ended"	
 		></youtube>
+				
+		<div class="youtubeControls"> 
+				<!-- <button @click="playVideo">Play</button> Hidden from view now
+				<button @click="pauseVideo">Pause</button>
+				<button @click="seekTo">Seek To</button> -->
+				<button @click="playAll">Play All</button>
+				<button @click="pauseAll">Pause All</button>
+				<button @click="backToStart">FromStart All</button>
+				<button ref="syncWithMe" @click="seekOnOthers">Sync with Me</button>
+				<!--<button @click="randomKPop">RandomKPop</button>-->
+				<button @click="changeSong">Change Video</button>
+				<input ref="youtubeIdInput" v-model="youtubeId" placeholder="Enter Youtube ID">
+                <button @click="muteAll">Mute All</button>
+                <button @click="unmuteAll">Unmute All</button>
+				<button @click="startTheShow">StartTheShow</button>
+				<!-- <p>Message is: {{ youtubeId }}</p>   -->
+		</div>
+
+
+
+
 
 		<div id="youtubeLogs">
 			<div id="bar"> 
@@ -54,23 +75,7 @@
 			</ul>
 			<!--<button id="clear" >Delete</button> <! @click="clearLogs"-->
 		</div>
-				
-		<div class="youtubeControls"> 
-				<!-- <button @click="playVideo">Play</button> Hidden from view now
-				<button @click="pauseVideo">Pause</button>
-				<button @click="seekTo">Seek To</button> -->
-				<button @click="playAll">Play All</button>
-				<button @click="pauseAll">Pause All</button>
-				<button @click="backToStart">FromStart All</button>
-				<button ref="syncWithMe" @click="seekOnOthers">Sync with Me</button>
-				<!--<button @click="randomKPop">RandomKPop</button>-->
-				<button @click="changeSong">Change Video</button>
-				<input ref="youtubeIdInput" v-model="youtubeId" placeholder="Enter Youtube ID">
-                <button @click="muteAll">Mute All</button>
-                <button @click="unmuteAll">Unmute All</button>
-				<button @click="startTheShow">StartTheShow</button>
-				<!-- <p>Message is: {{ youtubeId }}</p>   -->
-		</div>
+
 
 			<span ref="alert" id="alert" :v-if="this.alert === 'Resyncing. Clients not in sync.'" >{{this.alert}} </span>
 	</div>
@@ -400,28 +405,55 @@
 
 	<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style>
-	#alert{
+
+		/*Responsive Yt Embeds*/ 
+		.video-container {
+			position: relative;
+			padding-bottom: 56.25%;
+			padding-top: 30px; height: 0; overflow: hidden;
+		}
+ 
+		.video-container iframe,
+		.video-container object,
+		.video-container embed {
 		position: absolute;
-		z-index: 99999;
-		bottom: 0;
-		left:50%;
-		right:50%;
-		background: white;
-		border: 1px solid orange;
-		width: 170px;
-	}
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		}
+
+		#alert{
+			position: absolute;
+			z-index: 99999;
+			bottom: 0;
+			left:50%;
+			right:50%;
+			background: white;
+			border: 1px solid orange;
+			width: 170px;
+		}
 		#youtubeLogs{
+		
+
 
 		}
+		#YouSync{
+			max-width:426px;
+			width:100%;
+		}
 		#player{
-			margin: 0 auto;
+		
+			width:100%;
+			
+			max-height:240px;
 		}
 
 		ul.list-container  {
 			list-style-type: none;
 			font-size: 14px;
 			height: 150px;
-			width:400px;
+			/* width:400px; */
 			margin:0;
 			overflow-y: auto;
 			background-color: #33485E;
@@ -442,7 +474,7 @@
 
 	#bar {
 			text-align: center;
-			width: 424px;
+			/* width: 424px; */
 			height: 25px;
 			background-color: #DAD9D9;
 			margin: 0 ;
@@ -491,7 +523,7 @@
 			top: 5px;
 		}
 		.youtubeControls button{
-			background-color:indianred;
+			background-color:lightseagreen;
 		}
 		/* .youtubeControls {} */
 		#clear{
