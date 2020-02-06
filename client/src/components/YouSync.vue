@@ -9,7 +9,6 @@
 			@playing="playing" 
 			@paused="paused"
 			@ended="ended"	
-			@buffering="buffering"
 		></youtube>
 
 		<div id="youtubeLogs">
@@ -69,10 +68,11 @@
 				<input ref="youtubeIdInput" v-model="youtubeId" placeholder="Enter Youtube ID">
                 <button @click="muteAll">Mute All</button>
                 <button @click="unmuteAll">Unmute All</button>
-				<button @click="getCurrentState">Get Siblings Curr State</button>
+				<button @click="startTheShow">StartTheShow</button>
 				<!-- <p>Message is: {{ youtubeId }}</p>   -->
 		</div>
 
+			<span ref="alert" id="alert" :v-if="this.alert === 'Resyncing. Clients not in sync.'" >{{this.alert}} </span>
 	</div>
 </template>
 
@@ -92,14 +92,16 @@
       					},
 						context: 0,
 						position :{x: 0, y: 0},
-						videoId: 'guXMb7zLblM',
+						videoId: 'nx3egm8xIo8',
 						events: [],
 						username: "",
-						youtubeId: "2S24-y0Ij3Y", //2S24-y0Ij3Y
+						youtubeId: "bwmSjveL3Lc", //2S24-y0Ij3Y
 						randomkpop:[],
 						currentTime: "",
+						alert: "",
 						state: "",
-						personalTime: ""
+						personalTime: "",
+						difference: 0
 
 
 
@@ -120,36 +122,35 @@
 			// }, 1000)
 		
 			//get current time
-			window.setInterval(() => {
-				this.getCurrentTime();
-			}, 1000)
-			
 
-			
+				
 			this.socket.on('getCurrentTime', data => {  
 
-				// If there is data to log
-			
-					// console.log('I am this client time' + this.personalTime)
-					// console.log('I am other client time' + this.currentTime)
-   
+				//Restul 3 primesc asta
 
 				// #### THis is the magical formula i`ve been waiting to develop ! It finally compares both times without delay! ##############
 				this.player.getCurrentTime().then(value => {
+							this.difference = data.currentTime - value
 
 						if (value < data.currentTime - 0.150 || value > data.currentTime + 0.150) {
 						
 							//this.player.seekTo(data.currentTime, true); // might need to time it out by .400 or so
 						
-							this.$refs.syncWithMe.click();
-
+							//this.$refs.syncWithMe.click();
+							
+								//this.player.seekTo(data.currentTime, true); - to auto sync
 							
 
 							// // Forces video to play right after seek
 							//
-							console.log('They are not in .2 sync')
-						} else {
-							console.log('Clients are in sync')
+							//console.log('They are not in .2 sync')
+							this.alert= "Offsync by." + parseFloat(this.difference.toFixed(3))
+						}
+						
+						else {
+							//console.log('Clients are in sync')
+							
+							this.alert= "Clients in sync." + parseFloat(this.difference.toFixed(3))
 						}
 					});
 					
@@ -173,39 +174,14 @@
 			})
 
 
-			
-			this.socket.on('buffering', data => {  
-				this.state = data.id + " is " + data.action;
-				//console.log("This state is now :" + this.state )
-				//console.log(data.action + " " + data.id) 
-				this.player.seekTo(data.senderCurrentTime, true);
-				this.events.push(data);
-			})
-
 			this.socket.on('paused', data => {  
 
 				this.state = data.id + " is " + data.action;
-				this.events.push(data);
-				
+				this.events.push(data);		
 			})
+
 			this.socket.on('disconnect', data => {  
-
-			
 				this.events.push(data);
-
-			})
-
-
-
-
-			this.socket.on('getCurrentState', data => {  
-
-				this.player.getPlayerState().then(value => {
-							console.log('My state is:'+ " " + value)
-				});
-
-			
-				//this.events.push(data);
 			})
 
 
@@ -301,10 +277,7 @@
 					});
 					
 				},
-				getCurrentState(){
-					this.socket.emit("getCurrentState")
-						
-				},
+
 				ready (event) { //This guys tells me state of player, OH it shouts automatically
 						this.player = event.target;
 						console.log('Player is ready.')
@@ -365,6 +338,21 @@
 						//console.log(this.youtubeId)	
 						//So it can access data () with this
 				},
+				startTheShow(){
+					
+					window.setInterval(() => {
+				
+						this.player.getCurrentTime().then(value => {
+							// Do something with the value here
+							//console.log(value)
+							
+							this.socket.emit("getCurrentTime", value)
+							
+						});
+
+
+						}, 1500)
+				},
 
 				// All clients call these automatically when the API itself detects change
 				// playing () {
@@ -399,19 +387,7 @@
 					if (this.state !== "")
 					console.log(this.state)
 				},
-				getCurrentTime(){
-					
-					this.player.getCurrentTime().then(value => {
-						// Do something with the value here
-						//console.log(value)
-						
-						this.socket.emit("getCurrentTime", value)
-						
-					});
-					
-					
-					
-				}
+
 
 
 			},
@@ -424,6 +400,16 @@
 
 	<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style>
+	#alert{
+		position: absolute;
+		z-index: 99999;
+		bottom: 0;
+		left:50%;
+		right:50%;
+		background: white;
+		border: 1px solid orange;
+		width: 170px;
+	}
 		#youtubeLogs{
 
 		}

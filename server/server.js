@@ -27,10 +27,10 @@ Socketio.on("connection", socket => {
     //The magic !
     socket.on("getCurrentTime", value => {
         
-        socket.currentTime = value;   //parseFloat(value.toFixed(3));//round to 3 digits only and keep it number
+        socket.currentTime = value;// parseFloat(value.toFixed(3));//round to 3 digits only and keep it number
         socket.state = "at";
         //from broadcast which would seek only to others
-       socket.broadcast.emit('getCurrentTime', { // obtain only other client's data, not mine 
+        socket.broadcast.emit('getCurrentTime', { // obtain only other client's data, not mine 
                id: socket.id.substring(0,6),
                action: socket.state ,
                currentTime: socket.currentTime,
@@ -54,23 +54,11 @@ Socketio.on("connection", socket => {
         
         socket.senderCurrentTime = value; // 1. Get the currentTime of the Sender into socket.xx
         
-        console.log("Go to my moment, brothers!");
+        //console.log("Go to my moment, brothers!");
         //Broadcast to all sockets but Sender!
         Socketio.emit('seekOnOthers', {
             action: "Sender says go to this moment : ",
             senderCurrentTime: socket.senderCurrentTime // 2. Broadcast (send  to others) in the form of senderCurrentTime
-        })
-
-    });
-    socket.on('getCurrentState', value => {
-        
-        socket.senderCurrentTime = value; // 1. Get the currentTime of the Sender into socket.xx
-        
-        console.log("Go to my moment, brothers!");
-        //Broadcast to all sockets but Sender!
-        Socketio.emit('getCurrentState', {
-            action: "I am a sibling and my current state is : ",
-            timestamp: socket.handshake.time
         })
 
     });
@@ -95,9 +83,6 @@ Socketio.on("connection", socket => {
    
     });
 
-
-
-
     socket.on('paused', value => {
 
         socket.currentTime = value.toFixed(3)//round to 3 digits only
@@ -114,21 +99,6 @@ Socketio.on("connection", socket => {
             }) // send to all clients
 
     });
-
-
-    socket.on("buffering", data => {
-        socket.state = "buffering";
-
-        console.log(socket.id + " " + socket.state ) // log here socket.handshake.time 
-            //.slice to make it shorter in client
-        socket.broadcast.emit('buffering', {
-                id: socket.id.substring(0,6),
-                action: socket.state ,
-                timestamp: socket.handshake.time
-            }) // send to all clients
-    })
-
-
 
 
     // If connected & playing - Server console logs - socket.on
